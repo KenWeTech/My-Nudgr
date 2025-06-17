@@ -1,0 +1,56 @@
+</main>
+    <footer>
+	<details class="accordion1 card1" <%= (env.API_KEY_REQUIRED_FOR_WEBHOOK_RECEIVE === 'true' || env.LOGIN_REQUIRED === 'true') ? 'close' : '' %>>
+    <summary>⚙️ API Key &amp; Configuration</summary>
+    <div class="accordion1-content">
+        <% if (env.API_KEY_REQUIRED_FOR_WEBHOOK_RECEIVE === 'true') { %>
+            <p><strong>API Key for receiving webhooks (<code>X-API-Key</code> header):</strong></p>
+            <p><code id="apiKeyDisplay"><%= currentApiKey %></code>
+                <button class="button small-button" onclick="copyApiKey()">Copy</button>
+            </p>
+            <form action="/generate-api-key" method="POST" style="display: inline;">
+                <button type="submit" class="button danger-button small-button">Generate New API Key</button>
+            </form>
+            <p><small>If a new key is generated, update your clients (e.g., iOS Shortcut).</small></p>
+        <% } else { %>
+            <p>API Key for receiving webhooks is currently <strong>disabled</strong> (<code>API_KEY_REQUIRED_FOR_WEBHOOK_RECEIVE=false</code> in .env).</p>
+        <% } %>
+         <p>To add reminders via webhook (e.g., iOS Shortcut), send a POST request to <code><%= req.protocol %>://<%= req.get('host') %>/api/reminders</code> with a JSON body.
+        <br>Example body: <code>{"text": "My API Reminder", "due_datetime": "2025-12-31T10:00:00Z", "priority": 1}</code></p>
+        <p><small>Required fields: <code>text</code>, <code>due_datetime</code> (ISO 8601 UTC like 'YYYY-MM-DDTHH:MM:SSZ' or with offset). Optional: <code>priority</code>, <code>recipient</code>, <code>alert_lead_time</code> ("value_unit" e.g. "15_minutes"), <code>alert_repeat_additional_count</code>, <code>alert_repeat_interval_minutes</code>, <code>recurrence_rule</code>, <code>recurrence_end_date</code>, and specific webhook URLs.</small></p>
+    <div class="accordion-content">
+		<div class="soft-divider"></div>
+		<h4>Automated History Cleanup</h4>
+		<form action="/save-settings" method="POST">
+			<label for="history_cleanup_interval">Permanently delete archived items older than:</label>
+			<select name="history_cleanup_interval" id="history_cleanup_interval">
+				<option value="6m">6 Months</option>
+				<option value="1y">1 Year</option>
+				<option value="2y">2 Years</option>
+				<option value="off">Never (Off)</option>
+			</select>
+			<button type="submit" class="button small-button">Save Setting</button>
+			<small>Default in .env is: <%= env.HISTORY_CLEANUP_INTERVAL || '6m' %></small>
+		</form>
+			<div class="soft-divider"></div>
+			<h4>Data Export</h4>
+			<p>Download all of your active reminders as a standard calendar (.ics) file.</p>
+			<a href="/api/reminders.ics" class="button secondary-button">Export Active Reminders</a>
+			<div class="soft-divider"></div>
+			<h4>Data Import</h4>
+			<p>Bulk-create reminders by uploading a standard calendar file (.ics). This will add new reminders and not affect existing ones.</p>
+			<form action="/import-ics" method="POST" enctype="multipart/form-data">
+				<div class="form-group">
+					<label for="icsfile">ICS File:</label>
+					<input type="file" id="icsfile" name="icsfile" accept=".ics,text/calendar" required>
+				</div>
+				<button type="submit" class="button">Import Reminders</button>
+			</form>
+	</div>
+	</div>
+</details>
+        <p>&copy; <%= new Date().getFullYear() %> <%= appName %>. All rights reserved.</p>
+    </footer>
+    <script src="/js/script.js"></script>
+</body>
+</html>

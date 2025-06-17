@@ -1,0 +1,168 @@
+<%
+const formatForDateTimeLocal = (isoDateString) => {
+    if (!isoDateString) return '';
+    try {
+        const date = parseISO(isoDateString);
+        if (!isValid(date)) return '';
+        // Format to YYYY-MM-DDTHH:mm
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (e) {
+        return ''; // Handle invalid dates
+    }
+};
+
+const currentReminder = locals.editingReminder || {};
+const formAction = locals.editingReminder ? `/update-reminder/${currentReminder.id}` : '/add-reminder';
+const submitButtonText = locals.editingReminder ? 'Update Reminder' : 'Add Reminder';
+
+const currentLeadTimeValue = currentReminder.alert_lead_time_value !== undefined ? currentReminder.alert_lead_time_value : '0';
+const currentLeadTimeUnit = currentReminder.alert_lead_time_unit || 'minutes';
+const currentLeadTimeSelected = `${currentLeadTimeValue}_${currentLeadTimeUnit}`;
+%>
+
+<section class="reminder-form-section card">
+    <h2><%= locals.editingReminder ? 'Edit Reminder' : 'Add New Reminder' %></h2>
+    <form action="<%= formAction %>" method="POST" id="reminderForm">
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label for="text">Reminder Text:</label>
+                <input type="text" id="text" name="text" value="<%= currentReminder.text || '' %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Priority:</label>
+                <select id="priority" name="priority">
+                    <option value="3" <%= currentReminder.priority == 3 ? 'selected' : '' %>>Low</option>
+                    <option value="2" <%= (currentReminder.priority == 2 || currentReminder.priority === undefined) ? 'selected' : '' %>>Medium</option>
+                    <option value="1" <%= currentReminder.priority == 1 ? 'selected' : '' %>>High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="due_datetime_local">Due Date & Time:</label>
+                <input type="datetime-local" id="due_datetime_local" name="due_datetime_local" value="<%= formatForDateTimeLocal(currentReminder.due_datetime) %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="recipient">For (Recipient):</label>
+                <input type="text" id="recipient" name="recipient" value="<%= currentReminder.recipient || '' %>" placeholder="Optional">
+            </div>
+
+            <div class="form-group">
+                <label for="alert_lead_time">Alert Before Due:</label>
+                <select id="alert_lead_time" name="alert_lead_time">
+                    <% alertLeadOptions.forEach(option => { %>
+                        <option value="<%= option.value %>" <%= currentLeadTimeSelected === option.value ? 'selected' : '' %>><%= option.label %></option>
+                    <% }); %>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="alert_repeat_additional_count">Additional Alerts (Count):</label>
+                <input type="number" id="alert_repeat_additional_count" name="alert_repeat_additional_count" value="<%= currentReminder.alert_repeat_additional_count !== undefined ? currentReminder.alert_repeat_additional_count : 0 %>" min="0" max="10">
+            </div>
+
+            <div class="form-group">
+                <label for="alert_repeat_interval_minutes">Alert Interval (Minutes):</label>
+                <input type="number" id="alert_repeat_interval_minutes" name="alert_repeat_interval_minutes" value="<%= currentReminder.alert_repeat_interval_minutes !== undefined ? currentReminder.alert_repeat_interval_minutes : 5 %>" min="1" max="1440">
+            </div>
+
+            <div class="form-group full-width recurrence-builder">
+				<label>Repeats:</label>
+				<div class="recurrence-controls">
+					<select id="recurrence_freq">
+						<option value="none" selected>Does not repeat</option>
+						<option value="DAILY">Daily</option>
+						<option value="WEEKLY">Weekly</option>
+						<option value="MONTHLY">Monthly</option>
+						<option value="YEARLY">Yearly</option>
+					</select>
+					<span id="recurrence_every_label">Every</span>
+					<input type="number" id="recurrence_interval" value="1" min="1">
+					<span id="recurrence_freq_label">days</span>
+				</div>
+
+				<div id="weekly_options" class="recurrence-options" style="display: none;">
+					<label>On days:</label>
+					<div class="day-checkboxes">
+						<label><input type="checkbox" name="byday" value="SU"> <span>S</span></label>
+						<label><input type="checkbox" name="byday" value="MO"> <span>M</span></label>
+						<label><input type="checkbox" name="byday" value="TU"> <span>T</span></label>
+						<label><input type="checkbox" name="byday" value="WE"> <span>W</span></label>
+						<label><input type="checkbox" name="byday" value="TH"> <span>T</span></label>
+						<label><input type="checkbox" name="byday" value="FR"> <span>F</span></label>
+						<label><input type="checkbox" name="byday" value="SA"> <span>S</span></label>
+					</div>
+				</div>
+
+				<div id="monthly_options" class="recurrence-options" style="display: none;">
+					<label><input type="radio" name="monthly_type" value="bymonthday" checked> On day of the month (e.g., the 15th)</label>
+					<br>
+					<label><input type="radio" name="monthly_type" value="byday"> On the</label>
+					<select id="monthly_byday_pos">
+						<option value="1">First</option>
+						<option value="2">Second</option>
+						<option value="3">Third</option>
+						<option value="4">Fourth</option>
+						<option value="-1">Last</option>
+					</select>
+					<select id="monthly_byday_day">
+						<option value="SU">Sunday</option>
+						<option value="MO">Monday</option>
+						<option value="TU">Tuesday</option>
+						<option value="WE">Wednesday</option>
+						<option value="TH">Thursday</option>
+						<option value="FR">Friday</option>
+						<option value="SA">Saturday</option>
+						<option value="DAY">Day (Weekday/Weekend)</option>
+						<option value="WEEKDAY">Weekday</option>
+						<option value="WEEKEND">Weekend Day</option>
+					</select>
+				</div>
+
+				<div id="recurrence_end_date_group" style="display: none;">
+					<label for="recurrence_end_date">Ends On:</label>
+					<input type="datetime-local" id="recurrence_end_date" name="recurrence_end_date" value="<%= formatForDateTimeLocal(currentReminder.recurrence_end_date) %>">
+					<small>Leave blank to repeat forever.</small>
+				</div>
+			</div>
+			<input type="hidden" id="recurrence_rule" name="recurrence_rule" value="<%= currentReminder.recurrence_rule || '' %>">
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="is_relentless" name="is_relentless" value="1" <%= currentReminder.is_relentless == 1 ? 'checked' : '' %>>
+                    Relentless Nudge 🚨
+                </label>
+                <small>Repeats alert every 10 minutes until confirmed. Use for critical reminders.</small>
+            </div>
+			
+			<div class="form-group full-width">
+                <p class="webhook-config-toggle" onclick="toggleWebhookConfig()">Configure Notification Webhooks (Optional) <span class="arrow">&#9662;</span></p>
+                <div id="webhookConfig" class="webhook-config-details" style="display: <%= (currentReminder.notify_home_assistant_url || currentReminder.notify_ntfy_url || currentReminder.notify_gotify_url) ? 'block' : 'none' %>;">
+                    <div class="form-group">
+                        <label for="notify_home_assistant_url">Home Assistant Webhook URL:</label>
+                        <input type="url" id="notify_home_assistant_url" name="notify_home_assistant_url" value="<%= currentReminder.notify_home_assistant_url || env.HOME_ASSISTANT_WEBHOOK_URL || '' %>" placeholder="Global or Override">
+                    </div>
+                    <div class="form-group">
+                        <label for="notify_ntfy_url">Ntfy Topic URL:</label>
+                        <input type="url" id="notify_ntfy_url" name="notify_ntfy_url" value="<%= currentReminder.notify_ntfy_url || env.NTFY_TOPIC_URL || '' %>" placeholder="Global or Override (e.g., https://ntfy.sh/your_topic)">
+                    </div>
+                    <div class="form-group">
+                        <label for="notify_gotify_url">Gotify URL (Server Base):</label>
+                        <input type="url" id="notify_gotify_url" name="notify_gotify_url" value="<%= currentReminder.notify_gotify_url || env.GOTIFY_URL || '' %>" placeholder="Global or Override (e.g. https://gotify.example.com)">
+                        <small>Gotify token is configured globally in .env</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="button primary-button"><%= submitButtonText %></button>
+        <% if (locals.editingReminder) { %>
+            <a href="/" class="button secondary-button">Cancel Edit</a>
+        <% } %>
+    </form>
+</section>

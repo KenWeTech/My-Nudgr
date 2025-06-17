@@ -1,0 +1,20 @@
+services:
+  nudgr:
+    image: ghcr.io/kenwetech/my-nudgr:latest
+    container_name: my-nudgr
+    restart: unless-stopped
+    
+    ports:
+      - "6000:6000"
+      - "6443:6443" # Optional: For HTTPS
+      
+    # Pass environment variables from your .env file
+    env_file:
+      - ./.env
+      
+    # Mount volumes to persist data outside the container
+    volumes:
+      # Mounts the local ./data directory to the app's data directory
+      - ./data:/app/data
+      # Mounts the local ./ssl directory for HTTPS certificates
+      - ./ssl:/app/ssl

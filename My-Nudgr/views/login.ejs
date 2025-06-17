@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="My Nudgr">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title><%= appName %> - Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+	<link rel="icon" href="/assets/logo.png" type="image/png">
+	<link rel="apple-touch-icon" href="/assets/logo.png">
+	<link rel="manifest" href="/manifest.json">
+</head>
+<body class="login-page-body">
+    <main class="container login-container">
+        <div class="login-card card">
+            <h2><%= appName %></h2>
+			<h3 id="random-phrase"></h3>
+            <% if (locals.error) { %>
+                <p class="message error-message"><%= error %></p>
+            <% } %>
+            <form action="/login" method="POST">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="button-container">
+                    <button type="submit" class="button primary-button">Login</button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+    <script src="/js/login-phrase.js"></script>
+	<footer>
+        <p>&copy; <%= new Date().getFullYear() %> <%= appName %></p>
+    </footer>
+</body>
+</html>

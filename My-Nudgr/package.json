@@ -1,0 +1,37 @@
+{
+  "name": "My Nudgr",
+  "version": "1.0.0",
+  "description": "My Nudgr is a self-hosted, webhook-driven reminder server.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "reminder",
+    "nodejs",
+    "sqlite",
+    "webhook",
+    "home assistant",
+    "ntfy",
+    "gotify"
+  ],
+  "author": "KenWeTech",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "helmet": "^8.1.0",
+    "ics": "^3.8.1",
+    "multer": "^2.0.1",
+    "node-cron": "^3.0.3",
+    "node-ical": "^0.20.1",
+    "rrule": "^2.8.1",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.1"
+  }
+}

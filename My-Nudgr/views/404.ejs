@@ -1,0 +1,13 @@
+<%- include('partials/header', { appName: appName }) %>
+
+<div class="card" style="text-align: center;">
+    <h2>🚫 404 - Page Not Found 🚫</h2>
+    <p>Sorry, the page you are looking for (<code><%= url %></code>) does not exist.</p>
+    <p><a href="/" class="button">Go to Homepage</a></p>
+</div>
+
+<%- include('partials/footer', {
+    appName: appName,
+    currentApiKey: typeof currentApiKey !== 'undefined' ? currentApiKey : null,
+    env: typeof env !== 'undefined' ? env : {}
+}) %>

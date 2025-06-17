@@ -1,0 +1,16 @@
+<%- include('partials/header', { appName: appName }) %>
+
+<div class="card" style="text-align: center;">
+    <h2>⚠️ An Error Occurred ⚠️</h2>
+    <p><%= message %></p>
+    <% if (error && error.stack) { %>
+        <pre style="text-align: left; background-color: #333; padding: 10px; border-radius: 5px; overflow-x: auto;"><%= error.stack %></pre>
+    <% } %>
+    <p><a href="/" class="button">Go to Homepage</a></p>
+</div>
+
+<%- include('partials/footer', {
+    appName: appName,
+    currentApiKey: typeof currentApiKey !== 'undefined' ? currentApiKey : null,
+    env: typeof env !== 'undefined' ? env : {}
+}) %>

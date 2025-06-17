@@ -1,0 +1,133 @@
+<%- include('partials/header') %>
+
+<%
+const formatDisplayDateTime = (isoDateString) => {
+    if (!isoDateString) return 'N/A';
+    try {
+        const date = parseISO(isoDateString);
+        if (!isValid(date)) return 'Invalid Date';
+        return date.toLocaleString();
+    } catch (e) {
+        return 'Error parsing date';
+    }
+};
+const getPriorityText = (priority) => {
+    if (priority == 1) return 'High 🔥';
+    if (priority == 3) return 'Low 🧊';
+    return 'Medium ✨';
+};
+%>
+
+<%- include('partials/reminderForm', { editingReminder: locals.editingReminder, alertLeadOptions: locals.alertLeadOptions, env: locals.env, formatISO: locals.formatISO, parseISO: locals.parseISO, isValid: locals.isValid }) %>
+
+
+<section class="reminders-section card">
+    <h2>Active Reminders (<%= reminders.length %>)</h2>
+
+    <form action="/reminders/bulk-delete" method="POST" id="active-reminders-form">
+        <% if (reminders.length > 0) { %>
+            <div class="bulk-actions-bar">
+                <label>
+                    <input type="checkbox" id="select-all-active" title="Select All"> Select All
+                </label>
+                <button type="submit" class="button danger-button">Delete Selected</button>
+                <span id="active-selection-counter">0 items selected</span>
+            </div>
+
+            <div class="sort-filter-controls">
+                <span>Sort by:</span>
+                <% const sortFields = { due_datetime: 'Due Date', priority: 'Priority', text: 'Text', created_at: 'Created' }; %>
+                <% Object.entries(sortFields).forEach(([field, label]) => { %>
+                    <% const isCurrentSort = queryParams.sort_by === field || (!queryParams.sort_by && field === 'due_datetime'); %>
+                    <% const currentOrder = isCurrentSort ? (queryParams.sort_order === 'DESC' ? 'ASC' : 'DESC') : 'ASC'; %>
+                    <a href="/?sort_by=<%= field %>&sort_order=<%= currentOrder %>" class="<%= isCurrentSort ? 'active-sort' : '' %>">
+                        <%= label %> <%= isCurrentSort ? (queryParams.sort_order === 'DESC' ? '▼' : '▲') : '' %>
+                    </a>
+                <% }); %>
+            </div>
+            <div class="reminder-list">
+                <% reminders.forEach(reminder => { %>
+                    <div class="reminder-item priority-<%= reminder.priority %>">
+                        <input type="checkbox" class="active-reminder-checkbox" name="reminderIds" value="<%= reminder.id %>" title="Select reminder <%= reminder.id %>">
+                        
+                        <div class="reminder-text">
+                            <% if (reminder.is_relentless) { %> <span title="Relentless Nudge Enabled">🚨</span> <% } %>
+                            <strong><%= reminder.text %></strong>
+                            <% if (reminder.recipient) { %><small class="recipient">For: <%= reminder.recipient %></small><% } %>
+                        </div>
+                        <div class="reminder-details">
+                            <p><strong>Due:</strong> <span class="datetime"><%= formatDisplayDateTime(reminder.due_datetime) %></span></p>
+                            <% if (reminder.recurrence_rule && reminder.recurrence_rule !== 'none') { const ruleText = reminder.recurrence_rule.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()); %>
+                            <p><strong>Repeats:</strong> 🔄 <%= ruleText %></p>
+                            <% } %>
+                            <p><strong>Priority:</strong> <%= getPriorityText(reminder.priority) %></p>
+                        </div>
+                        <div class="reminder-actions">
+                            <a href="/edit-reminder/<%= reminder.id %>" class="button small-button edit-button">Edit 📝</a>
+                            <form action="/archive-reminder/<%= reminder.id %>" method="POST" style="display: inline;">
+                                <button type="submit" class="button small-button secondary-button">Archive 📥</button>
+                            </form>
+                            <form action="/delete-reminder/<%= reminder.id %>" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this active reminder?');">
+                                <button type="submit" class="button small-button danger-button">Delete 🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p>No active reminders. Add one above! 🎉</p>
+        <% } %>
+    </form>
+</section>
+
+<details class="accordion card">
+    <summary>📜 Reminder History (<%= history.length %>)</summary>
+    <div class="accordion-content">
+        <% if (history.length > 0) { %>
+            <div class="history-controls-container">
+                <form action="/reminders/bulk-delete" method="POST" id="history-reminders-form">
+                    <div class="bulk-actions-bar" style="background: none; border: none; padding: 0;">
+                         <label>
+                            <input type="checkbox" id="select-all-history" title="Select All History Items"> Select All
+                        </label>
+                        <button type="submit" class="button danger-button">Delete Selected</button>
+                        <span id="history-selection-counter">0 items selected</span>
+                    </div>
+                </form>
+                <form action="/clear-all-history" method="POST" onsubmit="return confirm('Are you sure you want to delete ALL reminders in history? This action cannot be undone.');">
+                    <button type="submit" class="button danger-button">Clear Entire History</button>
+                </form>
+            </div>
+
+            <div class="reminder-list history-list">
+                <% history.forEach(reminder => { %>
+                    <div class="reminder-item priority-<%= reminder.priority %> archived-item">
+                        <input type="checkbox" class="history-reminder-checkbox" name="reminderIds" value="<%= reminder.id %>" title="Select history item <%= reminder.id %>" form="history-reminders-form">
+
+                        <div class="reminder-text">
+                            <strong><%= reminder.text %></strong>
+                            <% if (reminder.recipient) { %><small class="recipient">For: <%= reminder.recipient %></small><% } %>
+                        </div>
+                        <div class="reminder-details">
+                            <p><strong>Originally Due:</strong> <span class="datetime"><%= formatDisplayDateTime(reminder.due_datetime) %></span> (Archived)</p>
+                            <p><strong>Priority:</strong> <%= getPriorityText(reminder.priority) %></p>
+                            <p><small>Created: <%= formatDisplayDateTime(reminder.created_at) %></small></p>
+                        </div>
+                        <div class="reminder-actions">
+                             <form action="/unarchive-reminder/<%= reminder.id %>" method="POST" style="display: inline;">
+                                 <button type="submit" class="button small-button secondary-button">Unarchive 📤</button>
+                             </form>
+                             <form action="/delete-reminder/<%= reminder.id %>" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this historical reminder?');">
+                                 <button type="submit" class="button small-button danger-button">Delete 🗑️</button>
+                             </form>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p>No reminders in history.</p>
+        <% } %>
+    </div>
+</details>
+
+<%- include('partials/footer') %>
