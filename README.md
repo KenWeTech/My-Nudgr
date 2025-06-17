@@ -101,7 +101,7 @@ If you prefer to deploy My Nudgr using a Docker image, simply grab the necessary
     
     Important for ADMIN_PASSWORD_HASH:
     
-    If your bcrypt password hash contains literal dollar signs ($), you must escape them with a second dollar sign ($$) in your .env file. Docker Compose interprets single $ as variable interpolation, which will break your hash.
+    If your bcrypt password hash contains literal dollar signs `($)`, you must escape them with a second dollar sign `($$)` in your .env file. Docker Compose interprets single $ as variable interpolation, which will break your hash.
     
     For example, if your hash is `$2a$12$ABC...`, it should appear in your `.env` like this:
     
