@@ -3,15 +3,16 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ] # Run when changes are pushed to the main branch
+    branches: [ "main" ] 
   pull_request:
-    branches: [ "main" ] # Run on pull requests targeting the main branch
-  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
-
+    branches: [ "main" ]
+  workflow_dispatch:
+  release:
+    types: [published]
+    
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
-    # Grant permissions for the GITHUB_TOKEN to push to ghcr.io
     permissions:
       contents: read
       packages: write
@@ -34,7 +35,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }} # e.g., ghcr.io/your-username/my-nudgr
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
       # 4. Set up QEMU for multi-platform builds (optional, but good practice)
       - name: Set up QEMU
