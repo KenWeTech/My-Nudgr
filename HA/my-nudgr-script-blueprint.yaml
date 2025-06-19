@@ -3,6 +3,7 @@ blueprint:
   description: Processes reminder data from My Nudgr, sending notifications and TTS alerts based on priority to mapped recipients.
   domain: script
   source_url: https://github.com/kenwetech/my-nudgr/blob/main/HA/my-nudgr-script-blueprint.yaml
+
   input:
     person1_devices:
       name: Person 1 Devices
@@ -18,7 +19,7 @@ blueprint:
         target:
           entity:
             domain: notify
-    # Add more person inputs here as needed (person3_devices, etc.)
+    # You can add more person inputs here (e.g., person3_devices)
     default_devices:
       name: Default Devices
       description: Notification services to use if the recipient is not recognized.
@@ -34,6 +35,7 @@ blueprint:
           domain: media_player
 
 mode: parallel
+
 fields:
   priority:
     description: The priority of the reminder (1, 2, or 3).
@@ -54,7 +56,7 @@ sequence:
       recipient_map:
         p1: !input person1_devices
         p2: !input person2_devices
-        # Add more person mappings here if you added more inputs
+        # Extend the map if more persons are added
         default: !input default_devices
       nudge_url: "{{ actions.nudge if actions is defined and actions.nudge is not none else none }}"
       confirm_url: "{{ actions.confirm if actions is defined and actions.confirm is not none else none }}"
@@ -71,7 +73,7 @@ sequence:
           - service: notify.persistent_notification
             data:
               title: "🔥 High Priority: {{ text }}"
-              message: "To: {{ target_devices.keys() | list | join(', ') }}"
+              message: "To: {{ target_devices | join(', ') }}"
           - service: tts.google_translate_say
             entity_id: !input tts_entity
             data:
@@ -82,7 +84,7 @@ sequence:
           - service: notify.persistent_notification
             data:
               title: "🔔 Reminder: {{ text }}"
-              message: "To: {{ target_devices.keys() | list | join(', ') }}"
+              message: "To: {{ target_devices | join(', ') }}"
           - service: tts.google_translate_say
             entity_id: !input tts_entity
             data:
@@ -93,7 +95,7 @@ sequence:
           - service: notify.persistent_notification
             data:
               title: "🧊 Low Priority: {{ text }}"
-              message: "To: {{ target_devices.keys() | list | join(', ') }}"
+              message: "To: {{ target_devices | join(', ') }}"
 
     default:
       - service: system_log.write
