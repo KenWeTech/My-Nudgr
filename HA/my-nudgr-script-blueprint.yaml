@@ -1,32 +1,67 @@
 blueprint:
   name: My Nudgr Notification Script
-  description: Processes reminder data from My Nudgr, sending notifications and TTS alerts based on priority to mapped recipients.
+  description: |
+    Processes reminder data from My Nudgr, sending notifications and TTS alerts based on priority to mapped recipients.
   domain: script
   source_url: https://github.com/kenwetech/my-nudgr/blob/main/HA/my-nudgr-script-blueprint.yaml
 
   input:
-    person1_devices:
-      name: Person 1 Devices
-      description: Notification services for the first person (e.g., P1).
+    p1_name:
+      name: Recipient 1 Name
+      description: Enter the exact name that the server will send (e.g., "Jo")
+      selector:
+        text: null
+    p1_devices:
+      name: Recipient 1 Notification Targets
       selector:
         target:
           entity:
             domain: notify
-    person2_devices:
-      name: Person 2 Devices
-      description: Notification services for the second person (e.g., P2).
+
+    p2_name:
+      name: Recipient 2 Name
+      description: Enter the exact name that the server will send (e.g., "Sam")
+      selector:
+        text: null
+    p2_devices:
+      name: Recipient 2 Notification Targets
       selector:
         target:
           entity:
             domain: notify
-    # You can add more person inputs here (e.g., person3_devices)
+
+    p3_name:
+      name: Recipient 3 Name
+      description: Enter the exact name that the server will send (e.g., "Lex")
+      selector:
+        text: null
+    p3_devices:
+      name: Recipient 3 Notification Targets
+      selector:
+        target:
+          entity:
+            domain: notify
+
+    p4_name:
+      name: Recipient 4 Name
+      description: Enter the exact name that the server will send (e.g., "Ray")
+      selector:
+        text: null
+    p4_devices:
+      name: Recipient 4 Notification Targets
+      selector:
+        target:
+          entity:
+            domain: notify
+
     default_devices:
       name: Default Devices
-      description: Notification services to use if the recipient is not recognized.
+      description: Fallback notification targets for unrecognized recipients
       selector:
         target:
           entity:
             domain: notify
+
     tts_entity:
       name: TTS Speaker
       description: The media_player entity to use for voice announcements.
@@ -39,66 +74,127 @@ mode: parallel
 fields:
   priority:
     description: The priority of the reminder (1, 2, or 3).
+    selector:
+      number:
+        min: 1
+        max: 3
+        step: 1
+        mode: slider
+    example: 1
+
   text:
     description: The main text of the reminder.
+    selector:
+      text:
+        multiline: true
+    example: Take out the trash
+
   recipient:
-    description: The intended recipient's name (e.g., 'P1', 'P2').
+    description: The intended recipient's name (e.g., "Sam", "Ray", "default").
+    selector:
+      text: null
     default: default
+    example: Sam
+
   id:
     description: The unique ID of the reminder for notification tagging.
+    selector:
+      text: null
+
   actions:
     description: A dictionary containing URLs for notification actions.
+    example: "{\"nudge\": \"http://...\", \"confirm\": \"http://...\"}"
+
   due_datetime:
     description: The ISO 8601 formatted due date.
+    selector:
+      datetime: null
+    example: "2025-06-05T21:30:00-04:00"
 
 sequence:
   - variables:
-      recipient_map:
-        p1: !input person1_devices
-        p2: !input person2_devices
-        # Extend the map if more persons are added
-        default: !input default_devices
+      lower_recipient: "{{ recipient | lower }}"
+      resolved_devices: >-
+        {% set map = {
+          (p1_name | lower): p1_devices,
+          (p2_name | lower): p2_devices,
+          (p3_name | lower): p3_devices,
+          (p4_name | lower): p4_devices
+        } %}
+        {{ map[lower_recipient] if lower_recipient in map else default_devices }}
       nudge_url: "{{ actions.nudge if actions is defined and actions.nudge is not none else none }}"
       confirm_url: "{{ actions.confirm if actions is defined and actions.confirm is not none else none }}"
-      target_devices: "{{ recipient_map[recipient | lower] | default(recipient_map['default']) }}"
       notification_actions: |
         {% set acts = [] %}
-        {% if nudge_url %}{% set _ = acts.append({'action': 'URI', 'title': 'Nudge Me Again Later', 'uri': nudge_url}) %}{% endif %}
-        {% if confirm_url %}{% set _ = acts.append({'action': 'URI', 'title': 'Confirm (Stop Alerts)', 'uri': confirm_url}) %}{% endif %}
+        {% if nudge_url %}
+          {% set acts = acts + [{'action': 'URI', 'title': 'Nudge Me Again Later', 'uri': nudge_url}] %}
+        {% endif %}
+        {% if confirm_url %}
+          {% set acts = acts + [{'action': 'URI', 'title': 'Confirm (Stop Alerts)', 'uri': confirm_url}] %}
+        {% endif %}
         {{ acts }}
 
   - choose:
-      - conditions: "{{ priority == 1 }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ priority == 1 }}"
         sequence:
-          - service: notify.persistent_notification
-            data:
-              title: "🔥 High Priority: {{ text }}"
-              message: "To: {{ target_devices | join(', ') }}"
+          - repeat:
+              for_each: "{{ resolved_devices }}"
+              sequence:
+                - service: "{{ repeat.item }}"
+                  data:
+                    title: "🔥 High Priority Reminder"
+                    message: "{{ text }}"
+                    data:
+                      tag: "reminder-{{ id }}"
+                      push:
+                        sound:
+                          name: default
+                          critical: 1
+                          volume: 1
+                      actions: "{{ notification_actions }}"
           - service: tts.google_translate_say
-            entity_id: !input tts_entity
             data:
-              message: "This is a high priority reminder for {{ recipient if recipient != 'default' else 'everyone' }}. {{ text }}"
+              entity_id: !input tts_entity
+              message: "This is a high priority reminder for {{ recipient }}. {{ text }}"
 
-      - conditions: "{{ priority == 2 }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ priority == 2 }}"
         sequence:
-          - service: notify.persistent_notification
-            data:
-              title: "🔔 Reminder: {{ text }}"
-              message: "To: {{ target_devices | join(', ') }}"
+          - repeat:
+              for_each: "{{ resolved_devices }}"
+              sequence:
+                - service: "{{ repeat.item }}"
+                  data:
+                    title: "🔔 Reminder"
+                    message: "{{ text }}"
+                    data:
+                      tag: "reminder-{{ id }}"
+                      actions: "{{ notification_actions }}"
           - service: tts.google_translate_say
-            entity_id: !input tts_entity
             data:
+              entity_id: !input tts_entity
               message: "Here is a reminder. {{ text }}"
 
-      - conditions: "{{ priority == 3 }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ priority == 3 }}"
         sequence:
-          - service: notify.persistent_notification
-            data:
-              title: "🧊 Low Priority: {{ text }}"
-              message: "To: {{ target_devices | join(', ') }}"
+          - repeat:
+              for_each: "{{ resolved_devices }}"
+              sequence:
+                - service: "{{ repeat.item }}"
+                  data:
+                    title: "🧊 Reminder"
+                    message: "{{ text }}"
+                    data:
+                      tag: "reminder-{{ id }}"
+                      actions: "{{ notification_actions }}"
 
     default:
       - service: system_log.write
         data:
           level: warning
-          message: "My Nudgr: Received reminder with unknown priority '{{ priority }}'."
+          message: "My Nudgr: Unknown priority '{{ priority }}' for reminder '{{ text }}'."
