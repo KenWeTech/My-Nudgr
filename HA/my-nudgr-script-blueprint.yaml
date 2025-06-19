@@ -121,10 +121,10 @@ sequence:
       notification_actions: |
         {% set acts = [] %}
         {% if nudge_url %}
-          {% set _ = acts.append({'action': 'URI', 'title': 'Nudge Me Again Later', 'uri': nudge_url}) %}
+          {% set acts = acts + [{'action': 'URI', 'title': 'Nudge Me Again Later', 'uri': nudge_url}] %}
         {% endif %}
         {% if confirm_url %}
-          {% set _ = acts.append({'action': 'URI', 'title': 'Confirm (Stop Alerts)', 'uri': confirm_url}) %}
+          {% set acts = acts + [{'action': 'URI', 'title': 'Confirm (Stop Alerts)', 'uri': confirm_url}] %}
         {% endif %}
         {{ acts }}
 
@@ -150,7 +150,7 @@ sequence:
             target: "{{ resolved_target }}"
 
           - condition: template
-            value_template: "{{ tts_entity is not none }}"
+            value_template: "{{ tts_entity is not none and tts_entity != 'none' }}"
           - choose:
             - conditions: "{{ priority == 1 }}"
               sequence:
