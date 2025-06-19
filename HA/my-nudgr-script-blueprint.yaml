@@ -14,9 +14,8 @@ blueprint:
     p1_devices:
       name: Recipient 1 Notification Targets
       selector:
-        target:
-          entity:
-            domain: notify
+        service:
+          domain: notify
 
     p2_name:
       name: Recipient 2 Name
@@ -26,9 +25,8 @@ blueprint:
     p2_devices:
       name: Recipient 2 Notification Targets
       selector:
-        target:
-          entity:
-            domain: notify
+        service:
+          domain: notify
 
     p3_name:
       name: Recipient 3 Name
@@ -38,9 +36,8 @@ blueprint:
     p3_devices:
       name: Recipient 3 Notification Targets
       selector:
-        target:
-          entity:
-            domain: notify
+        service:
+          domain: notify
 
     p4_name:
       name: Recipient 4 Name
@@ -50,17 +47,15 @@ blueprint:
     p4_devices:
       name: Recipient 4 Notification Targets
       selector:
-        target:
-          entity:
-            domain: notify
+        service:
+          domain: notify
 
     default_devices:
       name: Default Devices
       description: Fallback notification targets for unrecognized recipients
       selector:
-        target:
-          entity:
-            domain: notify
+        service:
+          domain: notify
 
     tts_entity:
       name: TTS Speaker
