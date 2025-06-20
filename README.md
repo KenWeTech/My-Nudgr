@@ -164,7 +164,7 @@ This blueprint creates an automation that listens for incoming webhooks from My 
 
 To use this blueprint, simply click the button below to import it directly into your Home Assistant instance:
 
-[![Open your Home Assistant instance and show the blueprint import dialog with a pre-filled URL.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/kenwetech/my-nudgr/main/ha/my-nudgr-automation-blueprint.yaml)
+[![Open your Home Assistant instance and show the blueprint import dialog with a pre-filled URL.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/KenWeTech/My-Nudgr/refs/heads/main/HA/my-nudgr-automation-blueprint.yaml)
 
 **Steps after import:**
 1.  In Home Assistant, navigate to **Settings > Automations & Scenes > Blueprints**.
@@ -178,7 +178,7 @@ This blueprint creates the script that takes the reminder data and sends out not
 
 To use this blueprint, click the button below to import it into your Home Assistant instance:
 
-[![Open your Home Assistant instance and show the blueprint import dialog with a pre-filled URL.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/kenwetech/my-nudgr/main/ha/my-nudgr-script-blueprint.yaml)
+[![Open your Home Assistant instance and show the blueprint import dialog with a pre-filled URL.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/kenwetech/my-nudgr/refs/heads/main/HA/my-nudgr-script-blueprint.yaml)
 
 **Steps after import:**
 1.  Import the blueprint from its GitHub URL just like the automation above (or use the button).
