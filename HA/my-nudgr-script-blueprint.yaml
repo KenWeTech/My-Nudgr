@@ -62,6 +62,13 @@ blueprint:
       selector:
         entity:
           domain: media_player
+    
+    tts_service:
+      name: TTS Service
+      description: The text-to-speech service to use (e.g., ""{{ tts_service }}"")
+      selector:
+        text:
+
 
 mode: parallel
 max: 10
@@ -107,6 +114,7 @@ sequence:
       p3_devices: !input p3_devices
       p4_devices: !input p4_devices
       default_devices: !input default_devices
+      tts_service: !input tts_service
       nudge_url: "{{ actions.nudge if actions is defined and actions.nudge is not none else none }}"
       confirm_url: "{{ actions.confirm if actions is defined and actions.confirm is not none else none }}"
       notification_actions: |
@@ -153,7 +161,7 @@ sequence:
                       actions: "{{ notification_actions }}"
           - condition: template
             value_template: "{{ tts_entity is not none and tts_entity != 'none' }}"
-          - service: tts.google_translate_say
+          - service: "{{ tts_service }}"
             data:
               entity_id: !input tts_entity
               message: "This is a high priority reminder for {{ recipient if recipient != 'default' else 'everyone' }}. {{ text }}"
@@ -173,7 +181,7 @@ sequence:
                       actions: "{{ notification_actions }}"
           - condition: template
             value_template: "{{ tts_entity is not none and tts_entity != 'none' }}"
-          - service: tts.google_translate_say
+          - service: "{{ tts_service }}"
             data:
               entity_id: !input tts_entity
               message: "Here is a reminder. {{ text }}"
