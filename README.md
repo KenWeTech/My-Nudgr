@@ -4,7 +4,9 @@
 
 # My Nudgr
 
-My Nudgr is a self-hosted, webhook-driven reminder and notification service designed to integrate seamlessly with home automation platforms like Home Assistant. It provides a simple web interface to manage reminders and a powerful backend to process them, sending alerts based on priority and user-defined schedules.
+**My Nudgr** is my personal solution for a very relatable problem: missed reminders. It started when my daughter complained about missing hers, and I realized I was occasionally missing them too, especially when I forget my phone on silent. That's why I created My Nudgr, a self-hosted, webhook-driven reminder and notification service designed to integrate seamlessly with home automation platforms like **Home Assistant**.
+
+My Nudgr isn't just about sending notifications; it's about making them unmissable and easy to manage. It's built to work perfectly with **iOS Shortcuts** for hands-free interaction, and it includes a "relentless nudge" mode to ensure critical alerts truly get your attention. Plus, you can "install" My Nudgr as a **Progressive Web App (PWA)** for quick, direct access to manually enter and manage reminders right from your home screen. It provides a simple web interface to manage reminders and a powerful backend to process them, sending alerts based on priority and user-defined schedules.
 
 ## Core Features
 
@@ -16,7 +18,7 @@ My Nudgr is a self-hosted, webhook-driven reminder and notification service desi
     -   Configure alerts to fire a specific lead time before the due date (e.g., 15 minutes before).
     -   Set reminders to repeat alerts multiple times.
 -   **Recurring Reminders**: Create reminders that repeat daily, weekly, monthly, etc., using the standard iCalendar (RFC 5545) RRULE format.
--   **"Relentless Nudge" Mode**: For critical reminders, enable a relentless mode that sends repeated notifications every 10 minutes until explicitly confirmed via a unique link.
+-   **"Relentless Nudge" Mode**: For critical reminders, enable a relentless mode that sends repeated notifications every 10 minutes until explicitly confirmed via a unique link. **After two unconfirmed nudges, the reminder's priority is automatically elevated to High, ensuring subsequent notifications on iOS devices bypass silent settings.**
 -   **Actionable Notifications**: Works with Home Assistant to send notifications with secure, token-based "Nudge Me Again Later" and "Confirm" buttons.
 -   **Flexible Notifications**: Can be configured to send alerts to multiple notification services simultaneously (e.g., Home Assistant, Ntfy, Gotify).
 -   **Data Export**: Download all active reminders to a standard `.ics` calendar file directly from the UI.
