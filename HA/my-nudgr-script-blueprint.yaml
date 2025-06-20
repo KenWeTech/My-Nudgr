@@ -115,7 +115,11 @@ sequence:
           (p3_name | lower): p3_devices,
           (p4_name | lower): p4_devices
         } %}
-        {{ name_map[lower_recipient] if lower_recipient in name_map and p1_name != "" else default_devices }}
+        {% if lower_recipient in name_map and lower_recipient != "" %}
+          {{ name_map[lower_recipient] }}
+        {% else %}
+          {{ default_devices }}
+        {% endif %}
       nudge_url: "{{ actions.nudge if actions is defined and actions.nudge is not none else none }}"
       confirm_url: "{{ actions.confirm if actions is defined and actions.confirm is not none else none }}"
       notification_actions: |
