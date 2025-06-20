@@ -8,7 +8,7 @@ blueprint:
   input:
     p1_name:
       name: Recipient 1 Name
-      description: 'Enter the exact name that the server will send (e.g., "Ted")'
+      description: 'Enter the exact name that the server will send (e.g., "Sam")'
       selector:
         text:
 
@@ -20,7 +20,7 @@ blueprint:
 
     p2_name:
       name: Recipient 2 Name
-      description: 'Enter the exact name that the server will send (e.g., "jacob")'
+      description: 'Enter the exact name that the server will send (e.g., "Jacob")'
       selector:
         text:
 
@@ -32,7 +32,7 @@ blueprint:
 
     p3_name:
       name: Recipient 3 Name
-      description: 'Enter the exact name that the server will send (e.g., "Sam")'
+      description: 'Enter the exact name that the server will send (e.g., "Tiff")'
       selector:
         text:
 
@@ -84,7 +84,7 @@ fields:
       text:
         multiline: true
   recipient:
-    description: 'The intended recipient''s name (e.g., "Ted", "jacob", "default").'
+    description: 'The intended recipient''s name (e.g., "Sam", "Jacob", "default").'
     selector:
       text:
     default: default
@@ -132,7 +132,7 @@ sequence:
           - "{{ priority == 1 }}"
         sequence:
           - repeat:
-              for_each: "{{ resolved_devices }}"
+              for_each: "{{ resolved_devices | from_yaml }}"
               sequence:
                 - service: "{{ repeat.item }}"
                   data:
@@ -157,7 +157,7 @@ sequence:
           - "{{ priority == 2 }}"
         sequence:
           - repeat:
-              for_each: "{{ resolved_devices }}"
+              for_each: "{{ resolved_devices | from_yaml }}"
               sequence:
                 - service: "{{ repeat.item }}"
                   data:
@@ -177,7 +177,7 @@ sequence:
           - "{{ priority == 3 }}"
         sequence:
           - repeat:
-              for_each: "{{ resolved_devices }}"
+              for_each: "{{ resolved_devices | from_yaml }}"
               sequence:
                 - service: "{{ repeat.item }}"
                   data:
