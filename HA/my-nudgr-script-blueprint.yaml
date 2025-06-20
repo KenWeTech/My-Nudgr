@@ -8,58 +8,53 @@ blueprint:
   input:
     p1_name:
       name: Recipient 1 Name
-      description: Enter the exact name that the server will send (e.g., "Jo")
-      selector:
-        text: null
-    p1_devices:
-      name: Recipient 1 Notification Targets
-      description: Enter one or more notify services, comma-separated (e.g., notify.mobile_app_jo_phone, notify.notify)
+      description: 'Enter the exact name that the server will send (e.g., "Geoff")'
       selector:
         text:
-          multiline: true
+    p1_devices:
+      name: Recipient 1 Notification Services
+      description: "Enter a YAML list of notification services (e.g., ['notify.mobile_app_phone1', 'notify.mobile_app_tablet1'])."
+      selector:
+        object:
 
     p2_name:
       name: Recipient 2 Name
       description: Enter the exact name that the server will send (e.g., "Sam")
       selector:
-        text: null
-    p2_devices:
-      name: Recipient 2 Notification Targets
-      description: Enter one or more notify services, comma-separated (e.g., notify.mobile_app_sam_phone)
-      selector:
         text:
-          multiline: true
+    p2_devices:
+      name: Recipient 2 Notification Services
+      description: "Enter a YAML list of notification services."
+      selector:
+        object:
 
     p3_name:
       name: Recipient 3 Name
-      description: Enter the exact name that the server will send (e.g., "Lex")
-      selector:
-        text: null
-    p3_devices:
-      name: Recipient 3 Notification Targets
-      description: Enter one or more notify services, comma-separated (e.g., notify.mobile_app_lex_tablet)
+      description: 'Enter the exact name that the server will send (e.g., "Jane")'
       selector:
         text:
-          multiline: true
+    p3_devices:
+      name: Recipient 3 Notification Services
+      description: "Enter a YAML list of notification services."
+      selector:
+        object:
 
     p4_name:
       name: Recipient 4 Name
       description: Enter the exact name that the server will send (e.g., "Ray")
       selector:
-        text: null
-    p4_devices:
-      name: Recipient 4 Notification Targets
-      description: Enter one or more notify services, comma-separated (e.g., notify.mobile_app_ray_iphone)
-      selector:
         text:
-          multiline: true
+    p4_devices:
+      name: Recipient 4 Notification Services
+      description: "Enter a YAML list of notification services."
+      selector:
+        object:
 
     default_devices:
-      name: Default Devices
-      description: Fallback notify services for unrecognized recipients, comma-separated
+      name: Default Notification Services
+      description: "Fallback YAML list of notification services for unrecognized recipients (e.g., "notify.notify")"
       selector:
-        text:
-          multiline: true
+        object:
 
     tts_entity:
       name: TTS Speaker
@@ -69,6 +64,7 @@ blueprint:
           domain: media_player
 
 mode: parallel
+max: 10
 
 fields:
   priority:
@@ -78,51 +74,39 @@ fields:
         min: 1
         max: 3
         step: 1
-        mode: slider
-    example: 1
-
   text:
     description: The main text of the reminder.
     selector:
       text:
         multiline: true
-    example: Take out the trash
-
   recipient:
     description: The intended recipient's name (e.g., "Sam", "Ray", "default").
     selector:
-      text: null
+      text:
     default: default
-    example: Sam
-
   id:
     description: The unique ID of the reminder for notification tagging.
     selector:
-      text: null
-
+      text:
   actions:
-    description: A dictionary containing URLs for notification actions.
-    example: "{\"nudge\": \"http://...\", \"confirm\": \"http://...\"}"
-
+    description: 'A dictionary containing URLs for notification actions.'
+    example: '{"nudge": "http://...", "confirm": "http://..."}'
   due_datetime:
     description: The ISO 8601 formatted due date.
     selector:
-      datetime: null
-    example: "2025-06-05T21:30:00-04:00"
+      datetime:
 
 sequence:
   - variables:
-      lower_recipient: "{{ recipient | lower }}"
-      map: >-
-        {{
-          {
-            (p1_name | lower): p1_devices.split(','),
-            (p2_name | lower): p2_devices.split(','),
-            (p3_name | lower): p3_devices.split(','),
-            (p4_name | lower): p4_devices.split(',')
-          }
-        }}
-      resolved_devices: "{{ map.get(lower_recipient, default_devices.split(',')) }}"
+      p1_name: !input p1_name
+      p2_name: !input p2_name
+      p3_name: !input p3_name
+      p4_name: !input p4_name
+      p1_devices: !input p1_devices
+      p2_devices: !input p2_devices
+      p3_devices: !input p3_devices
+      p4_devices: !input p4_devices
+      default_devices: !input default_devices
       nudge_url: "{{ actions.nudge if actions is defined and actions.nudge is not none else none }}"
       confirm_url: "{{ actions.confirm if actions is defined and actions.confirm is not none else none }}"
       notification_actions: |
@@ -134,16 +118,28 @@ sequence:
           {% set acts = acts + [{'action': 'URI', 'title': 'Confirm (Stop Alerts)', 'uri': confirm_url}] %}
         {% endif %}
         {{ acts }}
+      resolved_devices: >-
+        {% set lower_recipient = recipient | lower %}
+        {% set name_map = {
+          (p1_name | lower): p1_devices,
+          (p2_name | lower): p2_devices,
+          (p3_name | lower): p3_devices,
+          (p4_name | lower): p4_devices
+        } %}
+        {% if lower_recipient in name_map and lower_recipient != "" %}
+          {{ name_map[lower_recipient] }}
+        {% else %}
+          {{ default_devices }}
+        {% endif %}
 
   - choose:
       - conditions:
-          - condition: template
-            value_template: "{{ priority == 1 }}"
+          - "{{ priority == 1 }}"
         sequence:
           - repeat:
               for_each: "{{ resolved_devices }}"
               sequence:
-                - service: "{{ repeat.item | trim }}"
+                - service: "{{ repeat.item }}"
                   data:
                     title: "🔥 High Priority Reminder"
                     message: "{{ text }}"
@@ -153,40 +149,42 @@ sequence:
                         sound:
                           name: default
                           critical: 1
-                          volume: 1
+                          volume: 1.0
                       actions: "{{ notification_actions }}"
+          - condition: template
+            value_template: "{{ tts_entity is not none and tts_entity != 'none' }}"
           - service: tts.google_translate_say
             data:
               entity_id: !input tts_entity
-              message: "This is a high priority reminder for {{ recipient }}. {{ text }}"
+              message: "This is a high priority reminder for {{ recipient if recipient != 'default' else 'everyone' }}. {{ text }}"
 
       - conditions:
-          - condition: template
-            value_template: "{{ priority == 2 }}"
+          - "{{ priority == 2 }}"
         sequence:
           - repeat:
               for_each: "{{ resolved_devices }}"
               sequence:
-                - service: "{{ repeat.item | trim }}"
+                - service: "{{ repeat.item }}"
                   data:
                     title: "🔔 Reminder"
                     message: "{{ text }}"
                     data:
                       tag: "reminder-{{ id }}"
                       actions: "{{ notification_actions }}"
+          - condition: template
+            value_template: "{{ tts_entity is not none and tts_entity != 'none' }}"
           - service: tts.google_translate_say
             data:
               entity_id: !input tts_entity
               message: "Here is a reminder. {{ text }}"
 
       - conditions:
-          - condition: template
-            value_template: "{{ priority == 3 }}"
+          - "{{ priority == 3 }}"
         sequence:
           - repeat:
               for_each: "{{ resolved_devices }}"
               sequence:
-                - service: "{{ repeat.item | trim }}"
+                - service: "{{ repeat.item }}"
                   data:
                     title: "🧊 Reminder"
                     message: "{{ text }}"
