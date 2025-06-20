@@ -52,7 +52,7 @@ blueprint:
 
     default_devices:
       name: Default Notification Services
-      description: "Fallback YAML list of notification services for unrecognized recipients (e.g., "notify.notify")"
+      description: "Fallback YAML list of notification services for unrecognized recipients (e.g., 'notify.notify')"
       selector:
         object:
 
