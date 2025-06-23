@@ -62,12 +62,23 @@ blueprint:
       selector:
         entity:
           domain: media_player
-    
+          
     tts_service:
       name: TTS Service
       description: The text-to-speech service to use (e.g., ""{{ tts_service }}"")
       selector:
         text:
+    
+    tts_volume:
+      name: TTS Volume
+      description: Set the volume for TTS announcements (0.0 to 1.0).
+      default: 0.7
+      selector:
+        number:
+          min: 0.0
+          max: 1.0
+          step: 0.01
+          mode: slider
 
 
 mode: parallel
@@ -165,7 +176,7 @@ sequence:
             data:
               entity_id: !input tts_entity
               message: "This is a high priority reminder for {{ recipient if recipient != 'default' else 'everyone' }}. {{ text }}"
-
+              volume: !input tts_volume
       - conditions:
           - "{{ priority == 2 }}"
         sequence:
@@ -185,7 +196,7 @@ sequence:
             data:
               entity_id: !input tts_entity
               message: "Here is a reminder. {{ text }}"
-
+              volume: !input tts_volume
       - conditions:
           - "{{ priority == 3 }}"
         sequence:
