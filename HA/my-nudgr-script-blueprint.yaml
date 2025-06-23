@@ -69,7 +69,7 @@ blueprint:
       selector:
         text:
     
-   tts_volume:
+    tts_volume:
       name: TTS Volume
       description: Set the volume for TTS announcements (0.0 to 1.0).
       default: 0.7
