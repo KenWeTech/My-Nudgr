@@ -126,6 +126,7 @@ sequence:
       p4_devices: !input p4_devices
       default_devices: !input default_devices
       tts_service: !input tts_service
+      tts_entity: !input tts_entity
       nudge_url: "{{ actions.nudge if actions is defined and actions.nudge is not none else none }}"
       confirm_url: "{{ actions.confirm if actions is defined and actions.confirm is not none else none }}"
       notification_actions: |
@@ -176,22 +177,22 @@ sequence:
               original_tts_volume: "{{ state_attr(tts_entity, 'volume_level') | float(0.5) }}"
           - service: media_player.volume_set
             target:
-              entity_id: !input tts_entity
+              entity_id: "{{ tts_entity }}
             data:
               volume_level: !input tts_volume
           - service: "{{ tts_service }}"
             data:
-              entity_id: !input tts_entity
+              entity_id: "{{ tts_entity }}
               message: "This is a high priority reminder for {{ recipient if recipient != 'default' else 'everyone' }}. {{ text }}"
           - wait_for_trigger:
               - platform: state
-                entity_id: !input tts_entity
+                entity_id: "{{ tts_entity }}
                 to: 'idle'
             timeout: '00:00:30'
             continue_on_timeout: true
           - service: media_player.volume_set
             target:
-              entity_id: !input tts_entity
+              entity_id: "{{ tts_entity }}
             data:
               volume_level: "{{ original_tts_volume }}"
 
@@ -214,22 +215,22 @@ sequence:
               original_tts_volume: "{{ state_attr(tts_entity, 'volume_level') | float(0.5) }}"
           - service: media_player.volume_set
             target:
-              entity_id: !input tts_entity
+              entity_id: "{{ tts_entity }}
             data:
               volume_level: !input tts_volume
           - service: "{{ tts_service }}"
             data:
-              entity_id: !input tts_entity
+              entity_id: "{{ tts_entity }}
               message: "Here is a reminder. {{ text }}"
           - wait_for_trigger:
               - platform: state
-                entity_id: !input tts_entity
+                entity_id: "{{ tts_entity }}
                 to: 'idle'
             timeout: '00:00:30'
             continue_on_timeout: true
           - service: media_player.volume_set
             target:
-              entity_id: !input tts_entity
+              entity_id: "{{ tts_entity }}
             data:
               volume_level: "{{ original_tts_volume }}"
 
