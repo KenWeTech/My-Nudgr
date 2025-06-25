@@ -87,8 +87,8 @@ If you prefer to deploy My Nudgr using a Docker image, simply grab the necessary
     ```bash
     mkdir my-nudgr-deploy
     cd my-nudgr-deploy
-    curl -o docker-compose.yml https://raw.githubusercontent.com/kenwetech/my-nudgr/main/my-nudgr/extra/docker-compose.yml
-    curl -o example.env https://raw.githubusercontent.com/kenwetech/my-nudgr/main/my-nudgr/my-nudgr/example.env
+    curl -o docker-compose.yml https://raw.githubusercontent.com/kenwetech/my-nudgr/refs/heads/main/extra/docker-compose.yml
+    curl -o example.env https://raw.githubusercontent.com/kenwetech/my-nudgr/refs/heads/main/my-nudgr/example.env
     
     ```
     
