@@ -4,7 +4,6 @@ const formatForDateTimeLocal = (isoDateString) => {
     try {
         const date = parseISO(isoDateString);
         if (!isValid(date)) return '';
-        // Format to YYYY-MM-DDTHH:mm
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
@@ -12,7 +11,7 @@ const formatForDateTimeLocal = (isoDateString) => {
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     } catch (e) {
-        return ''; // Handle invalid dates
+        return '';
     }
 };
 
@@ -133,13 +132,13 @@ const currentLeadTimeSelected = `${currentLeadTimeValue}_${currentLeadTimeUnit}`
 			</div>
 			<input type="hidden" id="recurrence_rule" name="recurrence_rule" value="<%= currentReminder.recurrence_rule || '' %>">
 
-            <div class="form-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="is_relentless" name="is_relentless" value="1" <%= currentReminder.is_relentless == 1 ? 'checked' : '' %>>
-                    Relentless Nudge 🚨
-                </label>
-                <small>Repeats alert every 10 minutes until confirmed. Use for critical reminders.</small>
-            </div>
+			<div class="form-group relentless-nudge-group">
+				<label class="checkbox-label">
+					<input type="checkbox" id="is_relentless" name="is_relentless" value="1" <%= currentReminder.is_relentless == 1 ? 'checked' : '' %>>
+					Relentless Nudge 🚨 
+					<span class="info-icon">i</span> </label>
+				<small class="relentless-info">Repeats alert every 10 minutes until confirmed. Use for critical reminders.</small>
+			</div>
 			
 			<div class="form-group full-width">
                 <p class="webhook-config-toggle" onclick="toggleWebhookConfig()">Configure Notification Webhooks (Optional) <span class="arrow">&#9662;</span></p>
@@ -160,9 +159,13 @@ const currentLeadTimeSelected = `${currentLeadTimeValue}_${currentLeadTimeUnit}`
                 </div>
             </div>
         </div>
-        <button type="submit" class="button primary-button"><%= submitButtonText %></button>
-        <% if (locals.editingReminder) { %>
-            <a href="/" class="button secondary-button">Cancel Edit</a>
-        <% } %>
+        <div class="form-actions form-actions-bottom">
+            <button type="submit" class="button primary-button"><%= submitButtonText %></button>
+            <% if (locals.editingReminder) { %>
+                <a href="/" class="button secondary-button">Cancel Edit</a>
+            <% } else { %>
+                <button type="button" id="closeReminderFormButton" class="button secondary-button danger-button">Close</button>
+            <% } %>
+        </div>
     </form>
 </section>

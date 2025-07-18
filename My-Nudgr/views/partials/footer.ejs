@@ -29,7 +29,7 @@
 				<option value="2y">2 Years</option>
 				<option value="off">Never (Off)</option>
 			</select>
-			<button type="submit" class="button small-button">Save Setting</button>
+			<button type="submit" class="button setting-button">Save Setting</button>
 			<small>Default in .env is: <%= env.HISTORY_CLEANUP_INTERVAL || '6m' %></small>
 		</form>
 			<div class="soft-divider"></div>
@@ -44,7 +44,7 @@
 					<label for="icsfile">ICS File:</label>
 					<input type="file" id="icsfile" name="icsfile" accept=".ics,text/calendar" required>
 				</div>
-				<button type="submit" class="button">Import Reminders</button>
+				<button type="submit" class="button import-button">Import Reminders</button>
 			</form>
 	</div>
 	</div>

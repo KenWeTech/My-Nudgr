@@ -115,7 +115,7 @@ router.post('/add-reminder', auth.checkLogin, async (req, res) => {
             alert_repeat_interval_minutes: parseInt(alert_repeat_interval_minutes, 10) || 5,
             recurrence_rule,
             recurrence_end_date: recurrence_end_date || null,
-            is_relentless, // Pass to DB function
+            is_relentless,
             notify_home_assistant_url,
             notify_ntfy_url,
             notify_gotify_url
@@ -230,7 +230,7 @@ router.post('/delete-reminder/:id', auth.checkLogin, async (req, res) => {
     }
 });
 
-router.post('/reminders/bulk-delete', async (req, res) => {
+router.post('/reminders/bulk-delete', auth.checkLogin, async (req, res) => {
     let { reminderIds } = req.body;
 
     if (!reminderIds) {
@@ -242,12 +242,49 @@ router.post('/reminders/bulk-delete', async (req, res) => {
     }
 
     try {
-        const idsAsNumbers = reminderIds.map(id => parseInt(id, 10));
-        await db.bulkDeleteReminders(idsAsNumbers);
-        res.redirect(req.get('Referrer') || '/');
+        const uniqueReminderIds = [...new Set(reminderIds)];
+        const idsAsNumbers = uniqueReminderIds.map(id => parseInt(id, 10));
+        
+		const bDeleteCount = await db.bulkDeleteReminders(idsAsNumbers);
+		
+        if (bDeleteCount > 0) {
+			res.redirect(`${req.get('Referrer') || '/'}?message=${bDeleteCount} reminder(s) deleted successfully.`);
+		} else {
+            res.redirect(`${req.get('Referrer') || '/'}?info=No reminders were selected or found to deleted.`);
+        }
+		
     } catch (error) {
         console.error('Error during bulk delete:', error);
-        res.redirect(req.get('Referrer') || '/');
+        res.redirect(`${req.get('Referrer') || '/'}?error=Failed to delete reminders: ${error.message}`);
+    }
+});
+
+router.post('/reminders/bulk-archive', auth.checkLogin, async (req, res) => {
+    let { reminderIds } = req.body;
+
+    if (!reminderIds) {
+        return res.redirect(req.get('Referrer') || '/');
+    }
+
+    if (!Array.isArray(reminderIds)) {
+        reminderIds = [reminderIds];
+    }
+
+    try {
+        const uniqueReminderIds = [...new Set(reminderIds)];
+        const idsAsNumbers = uniqueReminderIds.map(id => parseInt(id, 10));
+        
+        const archivedCount = await db.bulkArchiveReminders(idsAsNumbers); 
+
+        if (archivedCount > 0) {
+            res.redirect(`${req.get('Referrer') || '/'}?message=${archivedCount} reminder(s) archived successfully.`);
+        } else {
+            res.redirect(`${req.get('Referrer') || '/'}?info=No active reminders were selected or found to archive.`);
+        }
+        
+    } catch (error) {
+        console.error('Error during bulk archiving:', error);
+        res.redirect(`${req.get('Referrer') || '/'}?error=Failed to archive reminders: ${error.message}`);
     }
 });
 
@@ -277,7 +314,6 @@ router.post('/unarchive-reminder/:id', auth.checkLogin, async (req, res) => {
         } else if (reminder.alerts_sent_count > reminder.alert_repeat_additional_count) {
             await db.updateReminderAfterSendingAlert(req.params.id, null, reminder.alerts_sent_count);
         }
-
 
         res.redirect('/?message=Reminder unarchived and reactivated (if applicable).');
     } catch (error) {
