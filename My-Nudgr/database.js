@@ -41,7 +41,7 @@ const initializeDb = () => {
         next_alert_datetime TEXT, -- ISO8601 format, when the next alert is due
         alerts_sent_count INTEGER DEFAULT 0,
         is_archived INTEGER DEFAULT 0, -- 0 for active, 1 for history
-        api_key_identifier TEXT r
+        api_key_identifier TEXT 
     );`;
     db.run(createTableSql, (err) => {
         if (err) console.error("Error creating reminders table", err.message);
@@ -141,7 +141,7 @@ const addReminder = (reminderData) => {
             alert_lead_time_value, alert_lead_time_unit,
             alert_repeat_additional_count, alert_repeat_interval_minutes,
             recurrence_rule, recurrence_dtstart, recurrence_end_date,
-            is_relentless, 0, // is_relentless, snooze_count
+            is_relentless, 0,
             notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
             initialNextAlertDatetime, 0, 0, api_key_identifier
         ], function(err) {
@@ -188,7 +188,7 @@ const updateReminder = (id, reminderData) => {
             id
         ], function(err) {
             if (err) reject(err);
-            else resolve({ id, ...reminderData });
+            else resolve(this.changes);
         });
     });
 };
@@ -232,7 +232,7 @@ const setRelentlessToken = (id) => {
         const token = uuidv4();
         const sql = `UPDATE reminders SET relentless_confirm_token = ? WHERE id = ?`;
         db.run(sql, [token, id], function(err) {
-            if (err) reject(err); else resolve(token);
+            if (err) reject(err); else resolve(this.changes);
         });
     });
 };
@@ -374,10 +374,31 @@ const getDueRemindersForAlerting = () => {
 const bulkDeleteReminders = (ids) => {
     return new Promise((resolve, reject) => {
         if (!Array.isArray(ids) || ids.length === 0) {
-            return resolve(0); // No IDs to delete
+            return resolve(0);
         }
         const placeholders = ids.map(() => '?').join(', ');
         const sql = `DELETE FROM reminders WHERE id IN (${placeholders})`;
+
+        db.run(sql, ids, function(err) {
+            if (err) reject(err);
+            else resolve(this.changes);
+        });
+    });
+};
+
+const bulkArchiveReminders = (ids) => {
+    return new Promise((resolve, reject) => {
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return resolve(0);
+        }
+        const placeholders = ids.map(() => '?').join(', ');
+        const sql = `UPDATE reminders SET 
+            is_archived = 1, 
+            snooze_count = 0, 
+            relentless_confirm_token = NULL,
+            next_alert_datetime = NULL,
+            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            WHERE id IN (${placeholders}) AND is_archived = 0`;
 
         db.run(sql, ids, function(err) {
             if (err) reject(err);
@@ -426,6 +447,7 @@ module.exports = {
     getDueRemindersForAlerting,
     updateReminderAfterSendingAlert,
 	bulkDeleteReminders,
+	bulkArchiveReminders,
     getRemindersToAutoArchive,
 	getReminderByNudgeToken,
     setNudgeToken
