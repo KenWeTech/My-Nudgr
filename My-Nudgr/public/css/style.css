@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-family: -apple-system, BlinkMacMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     background-color: #121212; 
     color: #e0e0e0; 
     line-height: 1.6;
@@ -78,6 +78,16 @@ header nav span {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+.form-actions-bottom {
+    display: flex;
+    justify-content: flex-start; 
+    align-items: center; 
+    gap: 10px; 
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid var(--border-color, #eee);
+}
+
 .form-group {
     margin-bottom: 15px;
 }
@@ -110,6 +120,13 @@ header nav span {
     box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.3);
 }
 
+.form-group small:not(.relentless-info) {
+    display: block; 
+    margin-top: 5px;
+    color: #777;
+    font-size: 0.85rem;
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -125,10 +142,11 @@ header nav span {
     border-radius: 4px;
     cursor: pointer;
     font-size: 1rem;
+	font-family: inherit; 
+    font-weight: bold;
     text-decoration: none;
+	text-align: center;
     display: inline-block;
-    margin-right: 8px;
-    margin-top: 5px;
     transition: background-color 0.2s ease, transform 0.1s ease;
 }
 .button:active, button:active {
@@ -136,7 +154,7 @@ header nav span {
 }
 
 .primary-button {
-    background-color: #00E676; 
+    background-color: #00E676;
     color: #121212;
 }
 .primary-button:hover {
@@ -152,18 +170,35 @@ header nav span {
 }
 
 .danger-button {
-    background-color: #ff4d4d; 
+    background-color: #ff4d4d;
     color: #ffffff;
+    border: 1px solid #ff4d4d; 
 }
 .danger-button:hover {
     background-color: #e60000;
+    border-color: #e60000; 
 }
 
 .small-button {
     padding: 6px 12px;
     font-size: 0.9rem;
 }
-
+.edit-button {
+    padding: 3px 12px;
+    font-size: 0.9rem;
+	background-color: #e0e0e0;
+    color: #000000;
+}
+.setting-button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+	background-color: #00E676;
+	color: #121212;
+}
+.import-button {
+	background-color: #00E676;
+	color: #121212;
+}
 .accordion1 summary {
     cursor: pointer;
     font-weight: bold;
@@ -196,7 +231,6 @@ header nav span {
     padding: 2px 6px;
     border-radius: 4px;
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    word-break: break-all;
 }
 .accordion1 .card1 {
     background-color: #1e1e1e;
@@ -208,9 +242,9 @@ header nav span {
     cursor: pointer;
     font-weight: bold;
     font-size: 1.2rem;
-    padding: 10px 0;
+    padding: 5px 0;
     border-bottom: 1px solid #333;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
     color: #00E676;
 }
 .accordion summary:hover {
@@ -223,7 +257,7 @@ header nav span {
     content: '▼ ';
 }
 .accordion-content {
-    padding: 10px 0;
+    padding: 0;
 }
 .accordion-content code {
     background-color: #333;
@@ -231,6 +265,12 @@ header nav span {
     border-radius: 4px;
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     word-break: break-all;
+}
+.accordion .card {
+    background-color: #1e1e1e;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .reminder-list {
@@ -270,7 +310,8 @@ header nav span {
 
 .reminder-details {
     flex-grow: 1; 
-    min-width: 200px; 
+    min-width: 150px;
+	flex-shrink: 1;
 }
 .reminder-details p {
     margin-bottom: 5px;
@@ -286,13 +327,47 @@ header nav span {
 }
 
 .reminder-actions {
-    flex-shrink: 0; 
+    flex-shrink: 1;
     display: flex;
-    flex-direction: column; 
+    flex-direction: row; 
     gap: 8px; 
-    align-items: flex-start; 
+    align-items: flex-start;
+	min-width: 0;	
 }
-
+@media (min-width: 992px) { 
+    .reminder-item {
+        flex-wrap: nowrap; 
+        align-items: center;
+        gap: 20px; 
+    }
+    .reminder-text {
+        flex-basis: auto;
+        flex-grow: 1;
+        margin-bottom: 0;
+    }
+    .reminder-details {
+        margin-left: 0; 
+        min-width: 250px; 
+        flex-shrink: 0; 
+        text-align: left;
+		justify-content: right;
+    }
+    .reminder-actions {
+        flex-direction: row; 
+        align-items: center;
+        margin-left: 0; 
+        flex-shrink: 0; 
+        gap: 10px; 
+        flex-wrap: nowrap; 
+    }
+    .reminder-actions button,
+    .reminder-actions .button { 
+        white-space: nowrap; 
+        min-width: auto; 
+        padding: 8px 12px; 
+        font-size: 1em; 
+    }
+}
 @media (min-width: 768px) {
     .reminder-item {
         flex-wrap: nowrap; 
@@ -307,9 +382,11 @@ header nav span {
         min-width: 250px;
     }
     .reminder-actions {
-        flex-direction: row; 
-        align-items: center; 
-        margin-left: 20px; 
+        flex-direction: column; 
+        align-items: center;
+		justify-content: flex-end;
+        margin-left: 20px;
+		flex-wrap: nowrap;
     }
 }
 
@@ -344,55 +421,8 @@ header nav span {
     color: #FFFFFF;
 }
 
-.message {
-    padding: 10px 15px;
-    margin-bottom: 15px;
-    border-radius: 4px;
-    text-align: center;
-}
-.success-message {
-    background-color: #00E676;
-    color: #121212;
-    font-weight: bold;
-}
-.error-message {
-    background-color: #ff4d4d;
-    color: #fff;
-    font-weight: bold;
-}
-
-footer {
-    text-align: center;
-    padding: 20px 0;
-    margin-top: 30px;
-    font-size: 0.9rem;
-    color: #777;
-    border-top: 1px solid #00E676;
-}
-
-.webhook-config-toggle {
-    cursor: pointer;
-    color: #00E676;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-.webhook-config-toggle .arrow {
-    display: inline-block;
-    transition: transform 0.2s ease;
-}
-.webhook-config-details[style*="display: block"] ~ .webhook-config-toggle .arrow, 
-.webhook-config-details.open ~ .webhook-config-toggle .arrow { 
-    transform: rotate(180deg);
-}
-.webhook-config-details {
-    padding: 10px;
-    border: 1px solid #333;
-    border-radius: 4px;
-    margin-top: 5px;
-    background-color: #252525;
-}
-
 .sort-filter-controls {
+    font-size: 0.7rem;
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid #333;
@@ -416,6 +446,103 @@ footer {
     background-color: #00E676;
     color: #121212;
 }
+
+.message {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    text-align: center;
+}
+.success-message {
+    background-color: #00E676;
+    color: #121212;
+    font-weight: bold;
+}
+.error-message {
+    background-color: #ff4d4d;
+    color: #fff;
+    font-weight: bold;
+}
+
+footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    font-size: 0.9rem; 
+    color: #777;
+    border-top: 1px solid #00E676;
+}
+footer p:last-child { 
+    font-size: 0.9rem; 
+    margin-top: 5px; 
+    margin-bottom: 0; 
+}
+
+@media (min-width: 768px) {
+    footer {
+        font-size: 0.7rem; 
+        padding: 25px 0;
+    }
+    
+    footer p:last-child {
+        font-size: 0.7rem; 
+    }
+	.accordion1 summary {
+		font-size: 0.7rem;
+	}
+	.accordion1-content {
+		font-size: 0.7rem;
+	}
+	.sort-filter-controls {
+		font-size: 0.7rem;
+	}
+}
+
+@media (min-width: 992px) {
+    footer {
+        font-size: 0.9rem; 
+        padding: 30px 0;
+    }
+    
+    footer p:last-child {
+        font-size: 0.9rem; 
+    }
+	.accordion1 summary {
+		font-size: 0.9rem;
+	}
+	.accordion1-content {
+		font-size: 1rem;
+	}
+	.sort-filter-controls {
+		font-size: 1rem;
+	}
+}
+
+.webhook-config-toggle {
+    cursor: pointer;
+    color: #00E676;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.webhook-config-toggle .arrow {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+.webhook-config-toggle .arrow { 
+    transform: rotate(0deg); 
+}
+.webhook-config-details[style*="display: block"] ~ .webhook-config-toggle .arrow, 
+.webhook-config-details.open ~ .webhook-config-toggle .arrow { 
+    transform: rotate(180deg);
+}
+.webhook-config-details {
+    padding: 10px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    margin-top: 5px;
+    background-color: #252525;
+}
+
 .recurrence-builder .recurrence-controls, .recurrence-builder .day-checkboxes {
 	display: flex;
 	align-items: center;
@@ -525,19 +652,85 @@ body.auto-close-page .footer-note {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    gap: 20px;
+    gap: 15px; 
     padding: 10px 15px;
     background-color: #2c2c2c;
     border-radius: 6px;
+	margin-top: 0;
     margin-bottom: 1em;
     border: 1px solid #444;
+
+    flex-wrap: nowrap;
+
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; 
 }
+
 .bulk-actions-bar label {
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0; 
+    white-space: nowrap; 
+}
+
+.bulk-actions-bar button {
+    
+    flex-shrink: 1;
+    
+    white-space: nowrap; 
+    
+    min-width: 30px; 
+    
+    padding: 8px 5px; 
+    line-height: 1.2; 
+    text-align: center; 
+}
+
+.bulk-actions-bar span#active-selection-counter {
+    white-space: nowrap; 
+    flex-shrink: 0; 
+    margin-left: auto; 
+    font-size: 0.9em; 
+}
+@media (max-width: 600px) { 
+
+    .bulk-actions-bar {
+        
+        flex-wrap: nowrap; 
+        justify-content: space-between; 
+        gap: 5px; 
+        padding: 8px 10px; 
+        overflow-x: auto; 
+        -webkit-overflow-scrolling: touch; 
+    }
+
+    .bulk-actions-bar label {
+        flex-shrink: 1; 
+        font-size: 0.9em; 
+        gap: 4px; 
+        padding-right: 5px; 
+    }
+
+    .bulk-actions-bar button {
+        
+        flex: 1 1 auto; 
+        min-width: 50px; 
+        padding: 6px 3px; 
+        font-size: 0.75em; 
+        line-height: 1.1; 
+        white-space: normal; 
+    }
+
+    .bulk-actions-bar span#active-selection-counter {
+        
+        flex-shrink: 1; 
+        font-size: 0.7em; 
+        white-space: wrap; 
+		margin-left: auto;
+    }
 }
 
 .history-controls-container {
@@ -557,4 +750,82 @@ body.auto-close-page .footer-note {
 .soft-divider {
   border-top: 1px solid #333;
   margin: 1em 0;
+}
+
+.relentless-nudge-group {
+    position: relative; 
+}
+
+.relentless-nudge-group .checkbox-label {
+    display: inline-flex; 
+    align-items: center;
+    cursor: pointer; 
+}
+
+.relentless-nudge-group .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #00E676; 
+    border-radius: 50%;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #00E676;
+    margin-left: 5px;
+    cursor: pointer;
+    line-height: 1; 
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.relentless-nudge-group .info-icon:hover {
+    background-color: #00E676;
+    color: #121212;
+}
+
+.relentless-info {
+    display: none; 
+    position: absolute;
+    bottom: 100%; 
+    left: 0;
+    
+    background-color: #333; 
+    color: #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    white-space: normal; 
+    width: 250px; 
+    z-index: 10; 
+    margin-bottom: 5px; 
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+
+    
+    &::after {
+        content: '';
+        position: absolute;
+        top: 100%; 
+        left: 15px; 
+        border-width: 5px;
+        border-style: solid;
+        border-color: #333 transparent transparent transparent;
+    }
+}
+
+.relentless-nudge-group:hover .relentless-info,
+.relentless-nudge-group .info-icon:hover + .relentless-info { 
+    display: block;
+}
+
+#newReminderButton.centered-block-button {
+    display: block; 
+    margin: 10px auto; 
+    transition: opacity 0.3s ease; 
+}
+#newReminderButton[hidden] {
+    display: none !important; 
+}
+#reminderFormContainer {
+    scroll-margin-top: 26px;
 }
