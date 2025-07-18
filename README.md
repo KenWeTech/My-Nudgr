@@ -53,7 +53,7 @@ My Nudgr isn't just about sending notifications; it's about making them unmissab
     -   `PORT_HTTPS`: The port for the optional HTTPS server (e.g., `6443`).
     -   `ENABLE_HTTPS`: Set to `true` to enable HTTPS. Requires SSL certificates in the `/ssl` directory.
     -   `REVERSE_PROXY_ENABLED`: Set to `true` if your app is running behind a reverse proxy like Nginx or Traefik, or if you're using HTTPS. This helps the app correctly identify the original protocol (HTTP/HTTPS) and client IP. Enabling this **will break direct HTTP access** if not behind a proxy.
-    -   `BASE_URL`: **Crucial for notification actions.** This must be the full, public-facing URL of your server (e.g., `http://192.168.0.55:6000`).
+    -   `BASE_URL`: **Crucial for notification actions.** This must be the full, public-facing URL of your server (e.g., `http://192.168.0.55:6000` or `http://mynudgr.local:6000`).
     -   `LOGIN_REQUIRED`: Set to `true` to enable a username/password login for the web UI.
     -   `ADMIN_USERNAME`: The username for the web UI login.
     -   `ADMIN_PASSWORD_HASH`: A bcrypt hash of your desired password. You can generate a secure hash using a tool like [bcrypt-generator.com](https://bcrypt-generator.com/) (ensure you trust the site) or use a local tool like the Python script provided in the `extra` folder.
@@ -67,6 +67,7 @@ My Nudgr isn't just about sending notifications; it's about making them unmissab
     -   `GOTIFY_URL`: Your global base URL for a Gotify server.
     -   `GOTIFY_TOKEN`: The application token for Gotify.
     -   `HISTORY_CLEANUP_INTERVAL`: Sets the automatic deletion period for archived reminders (e.g., `6m`, `1y`, `off`).
+    -   `APP_TIMEZONE`: Set the time zone (e.g., `America/New_York`).
 
 4.  **Run the application:**
     ```bash
@@ -154,8 +155,8 @@ If you prefer to deploy My Nudgr using a Docker image, simply grab the necessary
     
     Once the container is running, open your web browser to:
     
-    -   **HTTP:** `http://localhost:6000` (or your `PORT_HTTP`)
-    -   **HTTPS:** `https://localhost:6443` (or your `PORT_HTTPS`, if enabled. You might see a browser security warning for the self-signed certificate if using self-signed certs.)
+    -   **HTTP:** `http://mynudgr.local:6000` (or your `PORT_HTTP`)
+    -   **HTTPS:** `https://mynudgr.local:6443` (or your `PORT_HTTPS`, if enabled. You might see a browser security warning for the self-signed certificate if using self-signed certs.)
 
 ## Home Assistant Integration
 
