@@ -7,10 +7,22 @@ const db = require('./database');
 const sendWebhook = async (url, payload, serviceName) => {
     if (!url) return;
     try {
-        await axios.post(url, payload, { timeout: 10000 });
-        console.log(`Webhook sent to ${serviceName} for reminder: "${payload.text}"`);
+        const headers = {
+            'Content-Type': typeof payload === 'string' ? 'text/plain' : 'application/json'
+        };
+
+        if (serviceName === 'Gotify' && process.env.GOTIFY_TOKEN && !payload.token) {
+            headers['X-Gotify-Key'] = process.env.GOTIFY_TOKEN;
+        }
+
+        await axios.post(url, payload, { headers, timeout: 10000 });
+        console.log(`Webhook sent to ${serviceName} for reminder.`);
     } catch (error) {
         console.error(`Error sending ${serviceName} webhook to ${url}:`, error.message);
+        if (error.response) {
+            console.error(`  Response status: ${error.response.status}`);
+            console.error(`  Response data: ${JSON.stringify(error.response.data)}`);
+        }
     }
 };
 
@@ -66,14 +78,32 @@ const processReminderAlert = async (reminder) => {
     const confirmationUrl = reminder.is_relentless ? `${process.env.BASE_URL}/api/reminders/${tokenForThisRun}/confirm` : null;
     const nudgeUrl = reminder.snooze_count === 0 ? `${process.env.BASE_URL}/api/reminders/${nudgeTokenForThisRun}/nudge` : null;
 
-    const payload = {
+    const basePayload = {
         id: reminder.id, text: reminder.text, priority: reminder.priority,
         due_datetime: reminder.due_datetime, recipient: reminder.recipient,
         is_relentless: reminder.is_relentless,
         actions: { nudge: nudgeUrl, confirm: confirmationUrl }
     };
     
-    await sendWebhook(reminder.notify_home_assistant_url || process.env.HOME_ASSISTANT_WEBHOOK_URL, payload, 'Home Assistant');
+    const homeAssistantUrl = reminder.notify_home_assistant_url || process.env.HOME_ASSISTANT_WEBHOOK_URL;
+    if (homeAssistantUrl) {
+        await sendWebhook(homeAssistantUrl, basePayload, 'Home Assistant');
+    }
+
+    const ntfyUrl = reminder.notify_ntfy_url || process.env.NTFY_TOPIC_URL;
+    if (ntfyUrl) {
+        await sendWebhook(ntfyUrl, reminder.text, 'Ntfy');
+    }
+
+    const gotifyUrl = reminder.notify_gotify_url || process.env.GOTIFY_URL;
+    if (gotifyUrl && process.env.GOTIFY_TOKEN) { 
+        const gotifyPayload = {
+            message: reminder.text,
+            title: `Nudgr Reminder: ${reminder.text.substring(0, 50)}${reminder.text.length > 50 ? '...' : ''}`,
+            priority: reminder.priority === 1 ? 5 : (reminder.priority === 3 ? 1 : 3),
+        };
+        await sendWebhook(gotifyUrl, gotifyPayload, 'Gotify');
+    }
     
     const newAlertsSentCount = reminder.alerts_sent_count + 1;
 
@@ -164,7 +194,7 @@ const startScheduler = () => {
         console.log('Performing initial checks on startup...');
         checkAndSendReminders();
         autoArchiveOldReminders();
-    }, 5000); // 5 seconds delay
+    }, 5000);
 };
 
 module.exports = { startScheduler };
