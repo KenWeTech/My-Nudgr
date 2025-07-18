@@ -1,31 +1,108 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('✅ Service worker registered at:', reg.scope))
-            .catch(err => console.error('❌ Service worker registration failed:', err));
-    }
+	const newReminderButton = document.getElementById('newReminderButton');
+    const reminderFormContainer = document.getElementById('reminderFormContainer');
+    const closeReminderFormButton = document.getElementById('closeReminderFormButton');
+	const activeRemindersAccordion = document.querySelector('.accordion.card');
 
-    function setupBulkActions(formId, selectAllId, checkboxClass, counterId) {
-        const form = document.getElementById(formId);
-        const selectAllCheckbox = document.getElementById(selectAllId);
-        const itemCheckboxes = document.querySelectorAll(`.${checkboxClass}`);
-        const selectionCounter = document.getElementById(counterId);
-
-        if (!form || !selectAllCheckbox || !selectionCounter) {
+    const toggleFormAndButtonVisibility = (showForm) => {
+        if (!reminderFormContainer || !newReminderButton) {
+            console.warn("Missing reminder form elements. Cannot toggle visibility.");
             return;
         }
 
-        const updateCounter = () => {
-            const selectedCount = document.querySelectorAll(`.${checkboxClass}:checked`).length;
+        if (showForm) {
+            reminderFormContainer.removeAttribute('hidden');
+            newReminderButton.setAttribute('hidden', '');
+            setTimeout(() => {
+                reminderFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+        } else {
+            reminderFormContainer.setAttribute('hidden', '');
+            newReminderButton.removeAttribute('hidden');
+			
+			if (activeRemindersAccordion) {
+                setTimeout(() => {
+                    const accordionTop = activeRemindersAccordion.getBoundingClientRect().top + window.scrollY;
+
+                    const desiredOffset = 200;
+
+                    const targetScrollPosition = Math.max(0, accordionTop - desiredOffset);
+
+                    window.scrollTo({
+                        top: targetScrollPosition,
+                        behavior: 'smooth'
+                    });
+                }, 50);
+            }
+        }
+    };
+
+    if (newReminderButton) {
+        newReminderButton.addEventListener('click', () => {
+            toggleFormAndButtonVisibility(true);
+        });
+    }
+
+    if (closeReminderFormButton) {
+        closeReminderFormButton.addEventListener('click', () => {
+            toggleFormAndButtonVisibility(false);
+        });
+    }
+
+    if (reminderFormContainer && !reminderFormContainer.hasAttribute('hidden')) {
+        setTimeout(() => {
+            reminderFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+    }
+
+	
+    /**
+     * Sets up bulk action checkboxes and button handling for a given section.
+     * @param {string} sectionContainerSelector The CSS selector for the container holding reminders (e.g., '.accordion.card > .accordion-content > .reminders-section' or '#history-reminders-section').
+     * @param {string} selectAllId The ID of the "Select All" checkbox.
+     * @param {string} checkboxClass The class for all checkboxes in the list.
+     * @param {string} counterId The ID of the element to display the selection count.
+     * @param {string|null} archiveButtonId The ID of the bulk archive button (null if not present).
+     * @param {string|null} deleteButtonId The ID of the bulk delete button (null if not present).
+     * @param {string|null} archiveFormId The ID of the bulk archive form (null if not present).
+     * @param {string|null} deleteFormId The ID of the bulk delete form (null if not present).
+     */
+    function setupBulkActions(sectionContainerSelector, selectAllId, checkboxClass, counterId, archiveButtonId, deleteButtonId, archiveFormId, deleteFormId) {
+        const sectionContainer = document.querySelector(sectionContainerSelector);
+        if (!sectionContainer) {
+            console.warn(`Section container with selector '${sectionContainerSelector}' not found. Cannot set up bulk actions.`);
+            return;
+        }
+
+        const selectAllCheckbox = sectionContainer.querySelector(`#${selectAllId}`);
+        const selectionCounter = sectionContainer.querySelector(`#${counterId}`);
+
+        if (!selectAllCheckbox || !selectionCounter) {
+            return;
+        }
+
+        const itemCheckboxes = sectionContainer.querySelectorAll(`.${checkboxClass}`);
+
+        const archiveForm = archiveFormId ? document.getElementById(archiveFormId) : null;
+        const deleteForm = deleteFormId ? document.getElementById(deleteFormId) : null;
+
+        const archiveButton = archiveButtonId ? document.getElementById(archiveButtonId) : (archiveForm ? archiveForm.querySelector('button[type="submit"]') : null);
+        const deleteButton = deleteButtonId ? document.getElementById(deleteButtonId) : (deleteForm ? deleteForm.querySelector('button[type="submit"]') : null);
+        
+        const updateCounterAndButtonStates = () => {
+            const selectedCount = sectionContainer.querySelectorAll(`.${checkboxClass}:checked`).length;
             selectionCounter.textContent = `${selectedCount} item(s) selected`;
+
+            if (archiveButton) archiveButton.disabled = selectedCount === 0;
+            if (deleteButton) deleteButton.disabled = selectedCount === 0;
         };
 
         selectAllCheckbox.addEventListener('change', (e) => {
             itemCheckboxes.forEach(checkbox => {
                 checkbox.checked = e.target.checked;
             });
-            updateCounter();
+            updateCounterAndButtonStates();
         });
 
         itemCheckboxes.forEach(checkbox => {
@@ -33,29 +110,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!checkbox.checked) {
                     selectAllCheckbox.checked = false;
                 }
-                updateCounter();
+                updateCounterAndButtonStates();
             });
         });
 
-        form.addEventListener('submit', (e) => {
-            const selectedCount = document.querySelectorAll(`.${checkboxClass}:checked`).length;
-            if (selectedCount === 0) {
-                alert('Please select at least one item.');
+        if (archiveButton && archiveForm) {
+            archiveButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                return;
-            }
-            if (!confirm(`Are you sure you want to delete ${selectedCount} selected item(s)? This action cannot be undone.`)) {
-                e.preventDefault();
-            }
-        });
 
-        updateCounter();
+                const selectedReminderIds = Array.from(sectionContainer.querySelectorAll(`.${checkboxClass}:checked`))
+                                                .map(cb => cb.value);
+
+                if (selectedReminderIds.length === 0) {
+                    alert('Please select at least one item to archive.');
+                    return;
+                }
+
+                if (confirm(`Are you sure you want to archive ${selectedReminderIds.length} selected item(s)?`)) {
+                    archiveForm.querySelectorAll('input[name="reminderIds"]').forEach(input => input.remove());
+                    selectedReminderIds.forEach(id => {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'reminderIds';
+                        hiddenInput.value = id;
+                        archiveForm.appendChild(hiddenInput);
+                    });
+                    archiveForm.submit();
+                }
+            });
+        }
+
+        if (deleteButton && deleteForm) {
+            deleteButton.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const selectedReminderIds = Array.from(sectionContainer.querySelectorAll(`.${checkboxClass}:checked`))
+                                                .map(cb => cb.value);
+
+                if (selectedReminderIds.length === 0) {
+                    alert('Please select at least one item to delete.');
+                    return;
+                }
+
+                if (!confirm(`Are you sure you want to delete ${selectedReminderIds.length} selected item(s)? This action cannot be undone.`)) {
+                    return;
+                }
+
+                deleteForm.querySelectorAll('input[name="reminderIds"]').forEach(input => input.remove());
+                selectedReminderIds.forEach(id => {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'reminderIds';
+                    hiddenInput.value = id;
+                    deleteForm.appendChild(hiddenInput);
+                });
+                deleteForm.submit();
+            });
+        }
+
+        updateCounterAndButtonStates();
     }
 
-    setupBulkActions('active-reminders-form', 'select-all-active', 'active-reminder-checkbox', 'active-selection-counter');
-    setupBulkActions('history-reminders-form', 'select-all-history', 'history-reminder-checkbox', 'history-selection-counter');
+    setupBulkActions(
+        '.accordion.card > .accordion-content > .reminders-section',
+        'select-all-active',
+        'active-reminder-checkbox',
+        'active-selection-counter',
+        'archiveSelectedButton',
+        'deleteSelectedButton',
+        'active-reminders-archive-form',
+        'active-reminders-delete-form'
+    );
 
-    const recurrenceBuilder = document.querySelector('.recurrence-builder');
+    setupBulkActions(
+        '#history-reminders-section',
+        'select-all-history',
+        'history-reminder-checkbox',
+        'history-selection-counter',
+        null,
+        null,
+        null,
+        'history-reminders-form'
+    );
+
+	const recurrenceBuilder = document.querySelector('.recurrence-builder');
     if (recurrenceBuilder) {
         const freqSelect = document.getElementById('recurrence_freq');
         const intervalInput = document.getElementById('recurrence_interval');
@@ -64,42 +202,41 @@ document.addEventListener('DOMContentLoaded', function() {
         const weeklyOptions = document.getElementById('weekly_options');
         const monthlyOptions = document.getElementById('monthly_options');
         const endDateGroup = document.getElementById('recurrence_end_date_group');
-        const recurrenceEndDateInput = document.getElementById('recurrence_end_date');
         const rruleInput = document.getElementById('recurrence_rule');
         const form = document.getElementById('reminderForm');
 
         const manageUI = () => {
             const freq = freqSelect.value;
-            const plural = parseInt(intervalInput.value, 10) > 1;
+            const plural = intervalInput.value > 1;
 
             weeklyOptions.style.display = 'none';
             monthlyOptions.style.display = 'none';
             endDateGroup.style.display = 'block';
 
-            if (freq === 'none') {
-                freqLabel.textContent = '';
-                everyLabel.textContent = '';
-                intervalInput.style.display = 'none';
-                endDateGroup.style.display = 'none';
-            } else {
-                everyLabel.textContent = 'Every';
-                intervalInput.style.display = 'inline-block';
-                switch (freq) {
-                    case 'DAILY':
-                        freqLabel.textContent = plural ? 'days' : 'day';
-                        break;
-                    case 'WEEKLY':
-                        freqLabel.textContent = plural ? 'weeks' : 'week';
-                        weeklyOptions.style.display = 'block';
-                        break;
-                    case 'MONTHLY':
-                        freqLabel.textContent = plural ? 'months' : 'month';
-                        monthlyOptions.style.display = 'block';
-                        break;
-					case 'YEARLY':
-                        freqLabel.textContent = plural ? 'years' : 'year';
-                        break;
-                }
+            switch (freq) {
+                case 'none':
+                    freqLabel.textContent = '';
+                    everyLabel.textContent = '';
+                    intervalInput.style.display = 'none';
+                    endDateGroup.style.display = 'none';
+                    break;
+                case 'DAILY':
+                    freqLabel.textContent = plural ? 'days' : 'day';
+                    everyLabel.textContent = 'Every';
+                    intervalInput.style.display = 'inline-block';
+                    break;
+                case 'WEEKLY':
+                    freqLabel.textContent = plural ? 'weeks' : 'week';
+                    everyLabel.textContent = 'Every';
+                    intervalInput.style.display = 'inline-block';
+                    weeklyOptions.style.display = 'block';
+                    break;
+                case 'MONTHLY':
+                    freqLabel.textContent = plural ? 'months' : 'month';
+                    everyLabel.textContent = 'Every';
+                    intervalInput.style.display = 'inline-block';
+                    monthlyOptions.style.display = 'block';
+                    break;
             }
         };
 
@@ -114,8 +251,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (freq === 'WEEKLY') {
-                const byday = Array.from(document.querySelectorAll('#weekly_options input[name="byday"]:checked'))
-                                             .map(cb => cb.value).join(',');
+                const byday = Array.from(document.querySelectorAll('input[name="byday"]:checked'))
+                                 .map(cb => cb.value).join(',');
                 if (byday) parts.push(`BYDAY=${byday}`);
             }
 
@@ -124,112 +261,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (monthlyType === 'byday') {
                     const pos = document.getElementById('monthly_byday_pos').value;
                     const day = document.getElementById('monthly_byday_day').value;
-
-                    if (['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'DAY', 'WEEKDAY', 'WEEKEND'].includes(day)) {
-                        let byDayValue = day;
-                        if (['1','2','3','4','-1'].includes(pos) && !['DAY','WEEKDAY','WEEKEND'].includes(day)) {
-                            byDayValue = pos + day;
-                        }
-                        parts.push(`BYDAY=${byDayValue}`);
+                    parts.push(`BYDAY=${day}`);
+                    if (['1','2','3','4','-1'].includes(pos)) {
+                         parts.push(`BYSETPOS=${pos}`);
                     }
-                } else if (monthlyType === 'bymonthday') {
-                    // No BYMONTHDAY needed for this type as it's implicit from FREQ=MONTHLY without BYDAY
                 }
             }
-
             return parts.join(';');
-        };
-        
-        const initializeRecurrenceForm = () => {
-            const rruleString = rruleInput.value;
-
-            freqSelect.value = 'none';
-            intervalInput.value = '1';
-            document.querySelectorAll('#weekly_options input[name="byday"]').forEach(cb => cb.checked = false);
-            document.querySelector('input[name="monthly_type"][value="bymonthday"]').checked = true;
-            if (document.getElementById('monthly_byday_pos')) document.getElementById('monthly_byday_pos').value = '1';
-            if (document.getElementById('monthly_byday_day')) document.getElementById('monthly_byday_day').value = 'SU';
-
-            if (!rruleString || rruleString === 'none') {
-                manageUI();
-                return;
-            }
-
-            const parts = rruleString.split(';');
-            const rruleData = {};
-            parts.forEach(part => {
-                const [key, value] = part.split('=');
-                rruleData[key] = value;
-            });
-
-            if (rruleData.FREQ) {
-                freqSelect.value = rruleData.FREQ;
-            }
-            if (rruleData.INTERVAL) {
-                intervalInput.value = rruleData.INTERVAL;
-            }
-
-            if (rruleData.BYDAY && rruleData.FREQ === 'WEEKLY') {
-                const byDays = rruleData.BYDAY.split(',');
-                document.querySelectorAll('#weekly_options input[name="byday"]').forEach(checkbox => {
-                    checkbox.checked = byDays.includes(checkbox.value);
-                });
-            }
-
-            if (rruleData.FREQ === 'MONTHLY') {
-                if (rruleData.BYMONTHDAY) {
-                    document.querySelector('input[name="monthly_type"][value="bymonthday"]').checked = true;
-                } else if (rruleData.BYDAY) {
-                    document.querySelector('input[name="monthly_type"][value="byday"]').checked = true;
-                    const byDayValue = rruleData.BYDAY;
-                    let pos = '1';
-                    let day = byDayValue;
-
-                    if (byDayValue.length > 2 && (byDayValue.startsWith('1') || byDayValue.startsWith('2') ||
-                                                  byDayValue.startsWith('3') || byDayValue.startsWith('4') ||
-                                                  byDayValue.startsWith('-1'))) {
-                        pos = byDayValue.substring(0, byDayValue.length - 2);
-                        day = byDayValue.substring(byDayValue.length - 2);
-                    }
-
-                    if (document.getElementById('monthly_byday_pos')) {
-                        document.getElementById('monthly_byday_pos').value = pos;
-                    }
-                    if (document.getElementById('monthly_byday_day')) {
-                        document.getElementById('monthly_byday_day').value = day;
-                    }
-                }
-            }
-            manageUI();
         };
 
         freqSelect.addEventListener('change', manageUI);
         intervalInput.addEventListener('input', manageUI);
-
-        document.querySelectorAll('#weekly_options input[name="byday"]').forEach(cb => cb.addEventListener('change', () => rruleInput.value = buildRruleString()));
-        document.querySelectorAll('input[name="monthly_type"]').forEach(radio => radio.addEventListener('change', () => rruleInput.value = buildRruleString()));
-        document.getElementById('monthly_byday_pos').addEventListener('change', () => rruleInput.value = buildRruleString());
-        document.getElementById('monthly_byday_day').addEventListener('change', () => rruleInput.value = buildRruleString());
-        recurrenceEndDateInput.addEventListener('change', () => rruleInput.value = buildRruleString());
-
-
         form.addEventListener('submit', () => {
             rruleInput.value = buildRruleString();
         });
 
-        initializeRecurrenceForm();
+        manageUI();
     }
 
     const accordions = document.querySelectorAll('details.accordion summary');
     accordions.forEach(summary => {
         summary.addEventListener('click', function(event) {
-            if (this.parentElement.hasAttribute('open')) {
-            } else {
-                accordions.forEach(acc => {
-                    if (acc !== this && acc.parentElement.hasAttribute('open')) {
-                    }
-                });
-            }
+
         });
     });
 
@@ -237,11 +290,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (apiKeyDisplay) {
         window.copyApiKey = function() {
             const key = apiKeyDisplay.textContent;
-            navigator.clipboard.writeText(key).then(function() {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = key;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
                 alert('API Key copied to clipboard!');
-            }, function(err) {
+            } catch (err) {
                 alert('Failed to copy API Key: ' + err);
-            });
+            }
         };
     }
 
@@ -277,7 +336,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const alertCountInput = document.getElementById('alert_repeat_additional_count');
+    const recurrenceRuleSelect = document.getElementById('recurrence_rule');
+	const recurrenceEndDateGroup = document.getElementById('recurrence_end_date_group');
+
+	if (recurrenceRuleSelect) {
+		recurrenceRuleSelect.addEventListener('change', function() {
+			if (this.value === 'none') {
+				recurrenceEndDateGroup.style.display = 'none';
+			} else {
+				recurrenceEndDateGroup.style.display = 'block';
+			}
+		});
+	}
+
+	const alertCountInput = document.getElementById('alert_repeat_additional_count');
     const alertIntervalInput = document.getElementById('alert_repeat_interval_minutes');
     const alertIntervalLabel = document.querySelector('label[for="alert_repeat_interval_minutes"]');
 
@@ -297,15 +369,15 @@ document.addEventListener('DOMContentLoaded', function() {
             alertIntervalInput.required = false;
             alertIntervalInput.disabled = true;
             alertIntervalLabel.classList.remove('required-label');
-            alertIntervalInput.value = '';
         }
     }
 
     if (alertCountInput) {
         alertCountInput.addEventListener('input', toggleIntervalRequirement);
+
         toggleIntervalRequirement();
     }
-
+	
     setTimeout(() => {
         const messages = document.querySelectorAll('.message');
         messages.forEach(msg => {
