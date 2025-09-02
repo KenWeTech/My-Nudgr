@@ -139,7 +139,15 @@ If you prefer to deploy My Nudgr using a Docker image, simply grab the necessary
         
         The `docker-compose.yml` will map this host `ssl` directory to the container's `/app/ssl` directory.
         
-4.  Deploy with Docker Compose:
+4.  **Network Mode for Discovery (Recommended - Optional):**
+    
+    By default, Docker containers run in an isolated network, which is secure but prevents them from being discoverable by name on your local network. This is why you must use the `network_mode: "host"` setting if you want to access the application using a `.local` address like `http://mynudgr.local:6000`.
+    
+    To enable this, open `docker-compose.yml` and comment out the `ports` section, then uncomment the `network_mode: "host"` line. This change is necessary because mDNS (Multicast DNS), the protocol that resolves `.local` names, relies on multicast packets that don't pass through Docker's default virtual network. The host network setting makes the container share the host's network stack directly, allowing it to participate in mDNS discovery.
+    
+    Keep in mind that for this to work, your client device (e.g., your computer or phone) must also have a service that can resolve mDNS names, such as Bonjour (on macOS/iOS) or Avahi (on Linux).
+
+5.  Deploy with Docker Compose:
     
     From the directory containing your docker-compose.yml, .env, data, and (optionally) ssl folders, run:
     
@@ -151,7 +159,7 @@ If you prefer to deploy My Nudgr using a Docker image, simply grab the necessary
     
     This command will pull the `my-nudgr` Docker image from its registry, start the My Nudgr service, apply your environment variables from `.env`, and mount the specified data and SSL directories.
     
-5.  Access the Application:
+6.  Access the Application:
     
     Once the container is running, open your web browser to:
     
