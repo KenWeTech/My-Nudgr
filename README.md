@@ -85,7 +85,7 @@ Config
     -   `SESSION_SECRET`: A long, random string for securing user sessions.
     -   `HOME_ASSISTANT_WEBHOOK_URL`: Your global webhook URL for sending notifications to Home Assistant.
     -   `NTFY_TOPIC_URL`: Your global URL for a Ntfy topic.
-    -   `GOTIFY_URL`: Your global base URL for a Gotify server.
+    -   `GOTIFY_URL`: Your global base URL for a Gotify server. Don't forget to add `/message` at the end.
     -   `GOTIFY_TOKEN`: The application token for Gotify.
     -   `HISTORY_CLEANUP_INTERVAL`: Sets the automatic deletion period for archived reminders (e.g., `6m`, `1y`, `off`).
     -   `APP_TIMEZONE`: Set the time zone (e.g., `America/New_York`).
@@ -246,7 +246,7 @@ To add reminders via webhook, send a `POST` request to `/api/reminders`.
     "is_relentless": true,
     "notify_home_assistant_url": "http://homeassistant.local:8123/api/webhook/override-webhook-id",
     "notify_ntfy_url": "https://ntfy.sh/your-work-topic",
-    "notify_gotify_url": "https://gotify.example.com"
+    "notify_gotify_url": "https://gotify.example.com/message"
 }
 ```
 [More info on webhook structure →](https://github.com/KenWeTech/My-Nudgr/blob/main/docs/webhook.md)
