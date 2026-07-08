@@ -4,11 +4,12 @@ const { formatISO, parseISO, isPast, addMinutes, subMonths, subYears } = require
 const { RRule } = require('rrule');
 const db = require('./database');
 
-const sendWebhook = async (url, payload, serviceName) => {
+const sendWebhook = async (url, payload, serviceName, customHeaders = {}) => {
     if (!url) return;
     try {
         const headers = {
-            'Content-Type': typeof payload === 'string' ? 'text/plain' : 'application/json'
+            'Content-Type': typeof payload === 'string' ? 'text/plain' : 'application/json',
+            ...customHeaders
         };
 
         if (serviceName === 'Gotify' && process.env.GOTIFY_TOKEN && !payload.token) {
@@ -92,7 +93,19 @@ const processReminderAlert = async (reminder) => {
 
     const ntfyUrl = reminder.notify_ntfy_url || process.env.NTFY_TOPIC_URL;
     if (ntfyUrl) {
-        await sendWebhook(ntfyUrl, reminder.text, 'Ntfy');
+        const ntfyHeaders = {};
+        
+        const ntfyToken = reminder.notify_ntfy_token || process.env.NTFY_TOKEN;
+        const ntfyIcon = reminder.notify_ntfy_icon || process.env.NTFY_ICON;
+        const ntfyAttach = reminder.notify_ntfy_attach || process.env.NTFY_ATTACH;
+        const ntfyClick = reminder.notify_ntfy_click || process.env.NTFY_CLICK;
+
+        if (ntfyToken) ntfyHeaders['Authorization'] = `Bearer ${ntfyToken}`;
+        if (ntfyIcon) ntfyHeaders['Icon'] = ntfyIcon;
+        if (ntfyAttach) ntfyHeaders['Attach'] = ntfyAttach;
+        if (ntfyClick) ntfyHeaders['Click'] = ntfyClick;
+
+        await sendWebhook(ntfyUrl, reminder.text, 'Ntfy', ntfyHeaders);
     }
 
     const gotifyUrl = reminder.notify_gotify_url || process.env.GOTIFY_URL;
