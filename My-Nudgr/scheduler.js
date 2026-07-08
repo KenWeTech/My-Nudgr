@@ -110,9 +110,19 @@ const processReminderAlert = async (reminder) => {
 
     const gotifyUrl = reminder.notify_gotify_url || process.env.GOTIFY_URL;
     if (gotifyUrl && process.env.GOTIFY_TOKEN) { 
+        let gotifyTitle = `Nudgr Reminder: ${reminder.text.substring(0, 50)}${reminder.text.length > 50 ? '...' : ''}`;
+        let gotifyMessage = reminder.text;
+        const delimiter = '-/-';
+
+        if (reminder.text.includes(delimiter)) {
+            const parts = reminder.text.split(delimiter);
+            gotifyTitle = parts[0].trim();
+            gotifyMessage = parts[1].trim();
+        }
+
         const gotifyPayload = {
-            message: reminder.text,
-            title: `Nudgr Reminder: ${reminder.text.substring(0, 50)}${reminder.text.length > 50 ? '...' : ''}`,
+            message: gotifyMessage,
+            title: `Nudgr Reminder: ${gotifyTitle}`,
             priority: reminder.priority === 1 ? 5 : (reminder.priority === 3 ? 1 : 3),
         };
         await sendWebhook(gotifyUrl, gotifyPayload, 'Gotify');
