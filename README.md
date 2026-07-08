@@ -64,7 +64,10 @@ My Nudgr isn't just about sending notifications; it's about making them unmissab
     -   `SESSION_SECRET`: A long, random string for securing user sessions.
     -   `HOME_ASSISTANT_WEBHOOK_URL`: Your global webhook URL for sending notifications to Home Assistant.
     -   `NTFY_TOPIC_URL`: Your global URL for a Ntfy topic.
-    -   `GOTIFY_URL`: Your global base URL for a Gotify server.
+    -   `NTFY_TOKEN`: Optional: Authentication token if your topic/server requires it.
+    -   `NTFY_ICON`: Optional: URL to an icon/image to display in the notification.
+    -   `NTFY_ATTACH`: Optional: URL to an attachment or image to include.
+    -   `NTFY_CLICK`: Optional: URL to open when the notification is clicked.    -   `GOTIFY_URL`: Your global base URL for a Gotify server.
     -   `GOTIFY_TOKEN`: The application token for Gotify.
     -   `HISTORY_CLEANUP_INTERVAL`: Sets the automatic deletion period for archived reminders (e.g., `6m`, `1y`, `off`).
     -   `APP_TIMEZONE`: Set the time zone (e.g., `America/New_York`).
@@ -222,6 +225,18 @@ To add reminders via webhook, send a `POST` request to `/api/reminders`.
 ```
 [More info on webhook structure →](https://github.com/KenWeTech/My-Nudgr/blob/main/docs/webhook.md)
 
+### Gotify Title & Message Splitting (Optional)
+
+By default, Gotify notifications duplicate your reminder text into both the title and the message fields. You can isolate them by inserting a `-/-` marker into the `"text"` string.
+
+For instance, formatting the text as `"Server Maintenance -/- Apply the latest upstream security patches"` routes the context cleanly without duplicating text across both fields.
+
+When the system processes this marker:
+
+-   Every character before the `-/-` is extracted as the **Title** (e.g., `"Server Maintenance"`).
+    
+-   Every character after the `-/-` is extracted as the **Message** (e.g., `"Apply the latest upstream security patches"`).
+    
 
 ### My Nudgr on Your Devices
 
