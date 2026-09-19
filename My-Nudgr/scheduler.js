@@ -4,11 +4,12 @@ const { formatISO, parseISO, isPast, addMinutes, subMonths, subYears } = require
 const { RRule } = require('rrule');
 const db = require('./database');
 
-const sendWebhook = async (url, payload, serviceName) => {
+const sendWebhook = async (url, payload, serviceName, customHeaders = {}) => {
     if (!url) return;
     try {
         const headers = {
-            'Content-Type': typeof payload === 'string' ? 'text/plain' : 'application/json'
+            'Content-Type': typeof payload === 'string' ? 'text/plain' : 'application/json',
+            ...customHeaders
         };
 
         if (serviceName === 'Gotify' && process.env.GOTIFY_TOKEN && !payload.token) {
@@ -92,14 +93,36 @@ const processReminderAlert = async (reminder) => {
 
     const ntfyUrl = reminder.notify_ntfy_url || process.env.NTFY_TOPIC_URL;
     if (ntfyUrl) {
-        await sendWebhook(ntfyUrl, reminder.text, 'Ntfy');
+        const ntfyHeaders = {};
+        
+        const ntfyToken = reminder.notify_ntfy_token || process.env.NTFY_TOKEN;
+        const ntfyIcon = reminder.notify_ntfy_icon || process.env.NTFY_ICON;
+        const ntfyAttach = reminder.notify_ntfy_attach || process.env.NTFY_ATTACH;
+        const ntfyClick = reminder.notify_ntfy_click || process.env.NTFY_CLICK;
+
+        if (ntfyToken) ntfyHeaders['Authorization'] = `Bearer ${ntfyToken}`;
+        if (ntfyIcon) ntfyHeaders['Icon'] = ntfyIcon;
+        if (ntfyAttach) ntfyHeaders['Attach'] = ntfyAttach;
+        if (ntfyClick) ntfyHeaders['Click'] = ntfyClick;
+
+        await sendWebhook(ntfyUrl, reminder.text, 'Ntfy', ntfyHeaders);
     }
 
     const gotifyUrl = reminder.notify_gotify_url || process.env.GOTIFY_URL;
     if (gotifyUrl && process.env.GOTIFY_TOKEN) { 
+        let gotifyTitle = `Nudgr Reminder: ${reminder.text.substring(0, 50)}${reminder.text.length > 50 ? '...' : ''}`;
+        let gotifyMessage = reminder.text;
+        const delimiter = '-/-';
+
+        if (reminder.text.includes(delimiter)) {
+            const parts = reminder.text.split(delimiter);
+            gotifyTitle = parts[0].trim();
+            gotifyMessage = parts[1].trim();
+        }
+
         const gotifyPayload = {
-            message: reminder.text,
-            title: `Nudgr Reminder: ${reminder.text.substring(0, 50)}${reminder.text.length > 50 ? '...' : ''}`,
+            message: gotifyMessage,
+            title: `Nudgr Reminder: ${gotifyTitle}`,
             priority: reminder.priority === 1 ? 5 : (reminder.priority === 3 ? 1 : 3),
         };
         await sendWebhook(gotifyUrl, gotifyPayload, 'Gotify');

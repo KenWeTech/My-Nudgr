@@ -95,7 +95,8 @@ router.post('/add-reminder', auth.checkLogin, async (req, res) => {
             text, priority, due_datetime_local, recipient, alert_lead_time,
             alert_repeat_additional_count, alert_repeat_interval_minutes,
             recurrence_rule, recurrence_end_date,
-            notify_home_assistant_url, notify_ntfy_url, notify_gotify_url
+            notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click
         } = req.body;
         
         const is_relentless = (req.body.is_relentless === '1') ? 1 : 0;
@@ -118,7 +119,11 @@ router.post('/add-reminder', auth.checkLogin, async (req, res) => {
             is_relentless,
             notify_home_assistant_url,
             notify_ntfy_url,
-            notify_gotify_url
+            notify_gotify_url,
+            notify_ntfy_token, 
+            notify_ntfy_icon, 
+            notify_ntfy_attach, 
+            notify_ntfy_click
         });
         res.redirect('/?message=Reminder added successfully!');
     } catch (error) {
@@ -168,7 +173,8 @@ router.post('/update-reminder/:id', auth.checkLogin, async (req, res) => {
             text, priority, due_datetime_local, recipient, alert_lead_time,
             alert_repeat_additional_count, alert_repeat_interval_minutes,
             recurrence_rule, recurrence_end_date,
-            notify_home_assistant_url, notify_ntfy_url, notify_gotify_url
+            notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click
         } = req.body;
 
         const is_relentless = (req.body.is_relentless === '1') ? 1 : 0;
@@ -191,7 +197,11 @@ router.post('/update-reminder/:id', auth.checkLogin, async (req, res) => {
             is_relentless,
             notify_home_assistant_url,
             notify_ntfy_url,
-            notify_gotify_url
+            notify_gotify_url,
+            notify_ntfy_token, 
+            notify_ntfy_icon, 
+            notify_ntfy_attach, 
+            notify_ntfy_click
         });
         res.redirect('/?message=Reminder updated successfully!');
     } catch (error) {

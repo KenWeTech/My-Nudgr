@@ -35,6 +35,10 @@ const initializeDb = () => {
         nudge_token TEXT,
 	notify_home_assistant_url TEXT,
         notify_ntfy_url TEXT,
+        notify_ntfy_token TEXT,
+        notify_ntfy_icon TEXT,
+        notify_ntfy_attach TEXT,
+        notify_ntfy_click TEXT,
         notify_gotify_url TEXT,
         created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
         updated_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -71,6 +75,10 @@ const initializeDb = () => {
         { name: 'nudge_token', type: 'TEXT' },
 	{ name: 'notify_home_assistant_url', type: 'TEXT' },
         { name: 'notify_ntfy_url', type: 'TEXT' },
+        { name: 'notify_ntfy_token', type: 'TEXT' },
+        { name: 'notify_ntfy_icon', type: 'TEXT' },
+        { name: 'notify_ntfy_attach', type: 'TEXT' },
+        { name: 'notify_ntfy_click', type: 'TEXT' },
         { name: 'notify_gotify_url', type: 'TEXT' },
         { name: 'next_alert_datetime', type: 'TEXT' },
         { name: 'alerts_sent_count', type: 'INTEGER DEFAULT 0' },
@@ -119,6 +127,7 @@ const addReminder = (reminderData) => {
             recurrence_rule, recurrence_end_date,
             is_relentless,
             notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click,
             api_key_identifier
         } = reminderData;
 
@@ -132,9 +141,10 @@ const addReminder = (reminderData) => {
             recurrence_rule, recurrence_dtstart, recurrence_end_date,
             is_relentless, snooze_count,
             notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click,
             next_alert_datetime, alerts_sent_count, is_archived, api_key_identifier,
             created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
 
         db.run(sql, [
             text, priority, due_datetime, recipient,
@@ -143,6 +153,7 @@ const addReminder = (reminderData) => {
             recurrence_rule, recurrence_dtstart, recurrence_end_date,
             is_relentless, 0,
             notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click,
             initialNextAlertDatetime, 0, 0, api_key_identifier
         ], function(err) {
             if (err) reject(err);
@@ -159,7 +170,8 @@ const updateReminder = (id, reminderData) => {
             alert_repeat_additional_count, alert_repeat_interval_minutes,
             recurrence_rule, recurrence_end_date,
             is_relentless,
-            notify_home_assistant_url, notify_ntfy_url, notify_gotify_url
+            notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click
         } = reminderData;
 
         const recurrence_dtstart = (recurrence_rule && recurrence_rule !== 'none') ? due_datetime : null;
@@ -172,6 +184,7 @@ const updateReminder = (id, reminderData) => {
             recurrence_rule = ?, recurrence_dtstart = ?, recurrence_end_date = ?,
             is_relentless = ?,
             notify_home_assistant_url = ?, notify_ntfy_url = ?, notify_gotify_url = ?,
+            notify_ntfy_token = ?, notify_ntfy_icon = ?, notify_ntfy_attach = ?, notify_ntfy_click = ?,
             next_alert_datetime = ?, alerts_sent_count = 0, is_archived = 0, snooze_count = 0,
 			relentless_confirm_token = NULL,
             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
@@ -184,6 +197,7 @@ const updateReminder = (id, reminderData) => {
             recurrence_rule, recurrence_dtstart, recurrence_end_date,
             is_relentless,
             notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click,
             nextAlertDatetime,
             id
         ], function(err) {

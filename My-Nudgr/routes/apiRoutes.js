@@ -29,6 +29,7 @@ router.post('/reminders', auth.verifyApiKey, async (req, res) => {
             alert_repeat_additional_count, alert_repeat_interval_minutes,
             recurrence_rule, recurrence_end_date, is_relentless,
             notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click
         } = req.body;
 
         if (!text || !due_datetime) {
@@ -48,6 +49,7 @@ router.post('/reminders', auth.verifyApiKey, async (req, res) => {
             recurrence_end_date: recurrence_end_date || null,
             is_relentless: is_relentless ? 1 : 0,
             notify_home_assistant_url, notify_ntfy_url, notify_gotify_url,
+            notify_ntfy_token, notify_ntfy_icon, notify_ntfy_attach, notify_ntfy_click,
             api_key_identifier: req.headers['x-api-key'] ? 'KeyUsed' : 'NoKey'
         });
         res.status(201).json({ message: 'Reminder added successfully' });
