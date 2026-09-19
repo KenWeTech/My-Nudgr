@@ -3,6 +3,9 @@ services:
     image: ghcr.io/kenwetech/my-nudgr:latest
     container_name: my-nudgr
     restart: unless-stopped
+    # To enable mDNS discovery, uncomment the 'network_mode: "host"' line below.
+    # When using host mode, you must also comment out the 'ports' section below.
+    # network_mode: "host"
     
     ports:
       - "6000:6000"
