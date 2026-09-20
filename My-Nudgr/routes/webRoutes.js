@@ -61,9 +61,10 @@ router.get('/', auth.checkLogin, async (req, res, next) => {
         const sortBy = req.query.sort_by || 'due_datetime';
         const sortOrder = req.query.sort_order || 'ASC';
 
-        const [activeReminders, historyReminders, historyCleanupInterval] = await Promise.all([
+        const [activeReminders, historyReminders, currentApiKey, historyCleanupInterval] = await Promise.all([
             db.getReminders(false, sortBy, sortOrder),
             db.getReminders(true, 'due_datetime', 'DESC'),
+            auth.getApiKey(),
             db.getSetting('history_cleanup_interval')
         ]);
         
@@ -72,6 +73,7 @@ router.get('/', auth.checkLogin, async (req, res, next) => {
             reminders: activeReminders,
             history: historyReminders,
             editingReminder: null,
+            currentApiKey,
             alertLeadOptions,
             historyCleanupInterval,
             env: process.env,
