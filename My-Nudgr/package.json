@@ -1,6 +1,6 @@
 {
   "name": "My Nudgr",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "My Nudgr is a self-hosted, webhook-driven reminder server.",
   "main": "server.js",
   "scripts": {
